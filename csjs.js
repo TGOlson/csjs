@@ -53,7 +53,9 @@ function jsToCSS(declarationBlocks) {
   var css = [],
     selector,
     declarationBlock,
-    compiledStyle;
+    cssBlock,
+    property,
+    value;
 
   for(selector in declarationBlocks) {
     declarationBlock = declarationBlocks[selector];
@@ -61,31 +63,22 @@ function jsToCSS(declarationBlocks) {
     // invoke any functions, passing in the selector
     if(typeof declarationBlock === 'function') declarationBlock = declarationBlock(selector);
 
-    compiledStyle = selectorAndDeclarationBlockToCSS(selector, declarationBlock);
-    css.push(compiledStyle);
+    // add opening brace and a new line
+    cssBlock = selector + ' {\n';
+
+    for(property in declarationBlock) {
+      value = declarationBlock[property];
+
+      // indent property with two spaces and add a colon
+      // end declaration with semicolon and a new line
+      cssBlock += '  ' + property + ': ' + value + ';\n';
+    }
+
+    // add closing brace and a new line
+    css.push(cssBlock + '}');
   }
 
   return css.join('\n');
-}
-
-Compiler.selectorAndDeclarationBlockToCSS = selectorAndDeclarationBlockToCSS;
-function selectorAndDeclarationBlockToCSS(selector, declarationBlock) {
-  var css = selector + JSON.stringify(declarationBlock);
-
-  // add space new line after opening bracket, followed by two spaces
-  return css.replace(/{/g, ' {\n  ')
-
-  // remove all double quotes created from stringifying
-  .replace(/"/g, '')
-
-  // convert commas to semicolons, adding extra space
-  .replace(/,/g, ';\n  ')
-
-  // add extra space after each colon
-  .replace(/:/g, ': ')
-
-  // add closing semicolon and new line before closing brackets
-  .replace(/}/g, ';\n}');
 }
 
 return CSJS;
