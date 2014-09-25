@@ -49,13 +49,15 @@ function Compiler() {}
 
 // compiles a javascript object in compatible format to native css
 Compiler.jsToCSS =  jsToCSS;
-function jsToCSS(declarationBlocks) {
+function jsToCSS(declarationBlocks, previousSelector) {
   var css = [],
     selector,
     declarationBlock,
     cssBlock,
     property,
-    value;
+    value,
+    endOfDeclarationBlock,
+    declarationPrefix = '';
 
   for(selector in declarationBlocks) {
     declarationBlock = declarationBlocks[selector];
@@ -63,19 +65,39 @@ function jsToCSS(declarationBlocks) {
     // invoke any functions, passing in the selector
     if(typeof declarationBlock === 'function') declarationBlock = declarationBlock(selector);
 
+
+    if(previousSelector) selector = previousSelector + ' ' + selector;
+
+
     // add opening brace and a new line
-    cssBlock = selector + ' {\n';
+    cssBlock = declarationPrefix + selector + ' {\n';
 
     for(property in declarationBlock) {
       value = declarationBlock[property];
 
-      // indent property with two spaces and add a colon
-      // end declaration with semicolon and a new line
-      cssBlock += '  ' + property + ': ' + value + ';\n';
+      console.log(value, selector);
+
+      if(typeof value === 'object') {
+
+        // this stops the entire compilation process
+        // multi level nested selectors will not work
+        return jsToCSS(declarationBlock, selector);
+        // return;
+      } else {
+
+
+        // indent property with two spaces and add a colon
+        // end declaration with semicolon and a new line
+        cssBlock += '  ' + property + ': ' + value + ';\n';
+        console.log(cssBlock);
+        endOfDeclarationBlock = true;
+      }
     }
 
+    if(endOfDeclarationBlock) cssBlock += '}';
+
     // add closing brace and a new line
-    css.push(cssBlock + '}');
+    css.push(cssBlock);
   }
 
   return css.join('\n');
