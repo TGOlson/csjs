@@ -1,13 +1,7 @@
 var Compiler = require('../csjs').Compiler;
 
 describe('Compiler', function() {
-  // var compiler;
-
-  // beforeEach(function() {
-  //   compiler = new Compiler();
-  // });
-
-  describe('jsToCSS', function() {
+  xdescribe('jsToCSS', function() {
     it('should convert a simple compatible javascript object to css', function() {
       var object = {
         p: {color: 'red'}
@@ -152,7 +146,7 @@ describe('Compiler', function() {
       expect(Compiler.jsToCSS(object)).toBe(css);
     });
 
-    it('should convert simple nested selectors to css', function() {
+    iit('should convert simple nested selectors to css', function() {
       var object = {
         ul: {
           li: {'list-style': 'none'}
@@ -272,7 +266,7 @@ describe('Compiler', function() {
       expect(Compiler.jsToCSS(object)).toBe(css);
     });
 
-    xit('should convert nested multi-level styles to css', function() {
+    it('should convert nested multi-level styles to css', function() {
       var object = {
         div: {
           padding: '20px',
@@ -290,6 +284,26 @@ describe('Compiler', function() {
       expect(Compiler.jsToCSS(object)).toBe(css);
     });
 
+  });
+
+  describe('flattenObject', function() {
+    it('should return an already flat object', function() {
+      var object = {
+        1: {}
+      };
+
+      expect(Compiler.flattenObject(object)).toEqual(object);
+    });
+
+    it('should flatten a simple nested object', function() {
+      var object = {
+        1: {2: {}}
+      };
+
+      var flattened = {'1 2': {}}
+
+      expect(Compiler.flattenObject(object)).toEqual(flattened);
+    });
   });
 
 });

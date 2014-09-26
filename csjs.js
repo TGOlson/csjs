@@ -1,6 +1,5 @@
 (function(definition) {
 
-
   // require/node
   if(typeof exports === 'object') {
     module.exports = definition();
@@ -21,6 +20,7 @@
  * Contains core functions and properties
  */
 function CSJS() {}
+
 
 
 /**
@@ -49,59 +49,94 @@ function Compiler() {}
 
 // compiles a javascript object in compatible format to native css
 Compiler.jsToCSS =  jsToCSS;
-function jsToCSS(declarationBlocks, previousSelector) {
+function jsToCSS(blocks, level) {
   var css = [],
     selector,
-    declarationBlock,
-    cssBlock,
-    property,
-    value,
-    endOfDeclarationBlock,
-    declarationPrefix = '';
+    block,
+    cssBlock;
 
-  for(selector in declarationBlocks) {
-    declarationBlock = declarationBlocks[selector];
+  for(selector in blocks) {
+    block = blocks[selector];
 
-    // invoke any functions, passing in the selector
-    if(typeof declarationBlock === 'function') declarationBlock = declarationBlock(selector);
-
-
-    if(previousSelector) selector = previousSelector + ' ' + selector;
-
-
-    // add opening brace and a new line
-    cssBlock = declarationPrefix + selector + ' {\n';
-
-    for(property in declarationBlock) {
-      value = declarationBlock[property];
-
-      console.log(value, selector);
-
-      if(typeof value === 'object') {
-
-        // this stops the entire compilation process
-        // multi level nested selectors will not work
-        return jsToCSS(declarationBlock, selector);
-        // return;
-      } else {
-
-
-        // indent property with two spaces and add a colon
-        // end declaration with semicolon and a new line
-        cssBlock += '  ' + property + ': ' + value + ';\n';
-        console.log(cssBlock);
-        endOfDeclarationBlock = true;
-      }
+    // invoke any functional declarations, passing in the selector
+    // TODO: is there something better to pass in?
+    if(typeof block === 'function') {
+      block = block(selector);
     }
 
-    if(endOfDeclarationBlock) cssBlock += '}';
+    cssBlock = compileBlock(selector, block, level);
 
-    // add closing brace and a new line
     css.push(cssBlock);
   }
 
   return css.join('\n');
 }
+
+CSJS.Util = Util;
+function Util() {}
+
+// delimter for various mapping util
+Util.delimiter = ' ';
+
+/*
+ * Flattens an object
+ * @param {object} object - object to flatten
+ * @param {boolean} shallow - if true object is only flattened one level
+ * @return {object} - flattened object
+ */
+Util.flatten = flatten;
+function flatten(object, shallow) {
+  var flattened = {},
+    property,
+    value,
+    nextLevel,
+    prefix;
+
+  for(property in object) {
+    value = object[property];
+
+    if(typeof value === 'object' && shallow !== null && value !== null) {
+
+      // if shallow is required, set shallow to stopping keyword null
+      if(shallow) shallow = null;
+
+      nextLevel = flatten(value, shallow);
+      prefix = property + Util.delimiter;
+
+      Util.merge(flattened, nextLevel, prefix);
+
+    } else {
+      flattened[property] = value;
+    }
+  }
+
+  return flattened;
+}
+
+/*
+ * Destructively merges source data to an object
+ * @param {object} object - object to merge data into
+ * @param {object} source - object of source data
+ * @param {string} prefix - [optional] prefix properties with value
+ * @return {object} merged object
+ */
+Util.merge = merge;
+function merge(object, source, prefix) {
+  var merged = {},
+    property,
+    value;
+
+  prefix = prefix || '';
+
+  for(property in source) {
+    value = source[property];
+
+    object[prefix + property] = value;
+  }
+
+  return object;
+}
+
 
 return CSJS;
 });
