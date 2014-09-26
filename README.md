@@ -47,4 +47,19 @@ li {
 
 ## Features
 
-Do cool stuff.
+Write CSS in JavaScript
+
+## Specs
+
+Install `jasmine-node`
+
+```
+$ npm install -g jasmine-node
+```
+
+Run the specs
+
+```
+$ jasmine-node spec/
+```
+

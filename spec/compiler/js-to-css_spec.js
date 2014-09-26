@@ -1,7 +1,8 @@
-var Compiler = require('../csjs').Compiler;
+var Compiler = require('../../csjs').Compiler,
+  jsToCSS = Compiler.jsToCSS;
 
 describe('Compiler', function() {
-  xdescribe('jsToCSS', function() {
+  describe('jsToCSS', function() {
     it('should convert a simple compatible javascript object to css', function() {
       var object = {
         p: {color: 'red'}
@@ -11,7 +12,7 @@ describe('Compiler', function() {
                 '  color: red;\n' +
                 '}';
 
-      expect(Compiler.jsToCSS(object)).toBe(css);
+      expect(jsToCSS(object)).toBe(css);
     });
 
     it('should convert a simple compatible javascript object with multiple properties to css', function() {
@@ -27,7 +28,7 @@ describe('Compiler', function() {
                 '  margin: 5px;\n' +
                 '}';
 
-      expect(Compiler.jsToCSS(object)).toBe(css);
+      expect(jsToCSS(object)).toBe(css);
     });
 
     it('should convert a compatible javascript object with multiple declaration blocks to css', function() {
@@ -43,7 +44,7 @@ describe('Compiler', function() {
                 '  color: red;\n' +
                 '}';
 
-      expect(Compiler.jsToCSS(object)).toBe(css);
+      expect(jsToCSS(object)).toBe(css);
     });
 
     it('should convert multiple value properties to css', function() {
@@ -55,7 +56,7 @@ describe('Compiler', function() {
                 '  border: 1px solid #eee;\n' +
                 '}';
 
-      expect(Compiler.jsToCSS(object)).toBe(css);
+      expect(jsToCSS(object)).toBe(css);
     });
 
     it('should invoke functions that are values in declaration blocks', function() {
@@ -69,7 +70,7 @@ describe('Compiler', function() {
                 '  font-size: 20px;\n' +
                 '}';
 
-      expect(Compiler.jsToCSS(object)).toBe(css);
+      expect(jsToCSS(object)).toBe(css);
     });
 
     it('should convert a class declaration to css', function() {
@@ -81,7 +82,7 @@ describe('Compiler', function() {
                 '  width: 100%;\n' +
                 '}';
 
-      expect(Compiler.jsToCSS(object)).toBe(css);
+      expect(jsToCSS(object)).toBe(css);
     });
 
     it('should convert an id declaration to css', function() {
@@ -93,7 +94,7 @@ describe('Compiler', function() {
                 '  width: 100%;\n' +
                 '}';
 
-      expect(Compiler.jsToCSS(object)).toBe(css);
+      expect(jsToCSS(object)).toBe(css);
     });
 
     it('should convert an sudo selector to css', function() {
@@ -105,7 +106,7 @@ describe('Compiler', function() {
                 '  color: green;\n' +
                 '}';
 
-      expect(Compiler.jsToCSS(object)).toBe(css);
+      expect(jsToCSS(object)).toBe(css);
     });
 
     it('should convert a parent selector to css', function() {
@@ -117,7 +118,7 @@ describe('Compiler', function() {
                 '  color: green;\n' +
                 '}';
 
-      expect(Compiler.jsToCSS(object)).toBe(css);
+      expect(jsToCSS(object)).toBe(css);
     });
 
     it('should convert a sibling selector to css', function() {
@@ -129,7 +130,7 @@ describe('Compiler', function() {
                 '  color: green;\n' +
                 '}';
 
-      expect(Compiler.jsToCSS(object)).toBe(css);
+      expect(jsToCSS(object)).toBe(css);
     });
 
     it('should convert a child selector to css', function() {
@@ -143,10 +144,10 @@ describe('Compiler', function() {
                 '  color: green;\n' +
                 '}';
 
-      expect(Compiler.jsToCSS(object)).toBe(css);
+      expect(jsToCSS(object)).toBe(css);
     });
 
-    iit('should convert simple nested selectors to css', function() {
+    it('should convert simple nested selectors to css', function() {
       var object = {
         ul: {
           li: {'list-style': 'none'}
@@ -157,7 +158,7 @@ describe('Compiler', function() {
                 '  list-style: none;\n' +
                 '}';
 
-      expect(Compiler.jsToCSS(object)).toBe(css);
+      expect(jsToCSS(object)).toBe(css);
     });
 
     it('should convert simple a nested selector with multiple properties to css', function() {
@@ -175,7 +176,7 @@ describe('Compiler', function() {
                 '  padding: 5px;\n' +
                 '}';
 
-      expect(Compiler.jsToCSS(object)).toBe(css);
+      expect(jsToCSS(object)).toBe(css);
     });
 
     it('should convert multiple nested selectors to css', function() {
@@ -193,7 +194,7 @@ describe('Compiler', function() {
                 '  color: green;\n' +
                 '}';
 
-      expect(Compiler.jsToCSS(object)).toBe(css);
+      expect(jsToCSS(object)).toBe(css);
     });
 
     it('should convert multiple nested selectors with multiple properties to css', function() {
@@ -219,7 +220,7 @@ describe('Compiler', function() {
                 '  background-color: purple;\n' +
                 '}';
 
-      expect(Compiler.jsToCSS(object)).toBe(css);
+      expect(jsToCSS(object)).toBe(css);
     });
 
     it('should convert many nested selectors to css', function() {
@@ -245,7 +246,7 @@ describe('Compiler', function() {
                 '  color: purple;\n' +
                 '}';
 
-      expect(Compiler.jsToCSS(object)).toBe(css);
+      expect(jsToCSS(object)).toBe(css);
     });
 
     it('should convert deeply nested selectors to css', function() {
@@ -263,7 +264,7 @@ describe('Compiler', function() {
                 '  color: red;\n' +
                 '}';
 
-      expect(Compiler.jsToCSS(object)).toBe(css);
+      expect(jsToCSS(object)).toBe(css);
     });
 
     it('should convert nested multi-level styles to css', function() {
@@ -281,29 +282,9 @@ describe('Compiler', function() {
                 '  color: red;\n' +
                 '}';
 
-      expect(Compiler.jsToCSS(object)).toBe(css);
+      expect(jsToCSS(object)).toBe(css);
     });
 
-  });
-
-  describe('flattenObject', function() {
-    it('should return an already flat object', function() {
-      var object = {
-        1: {}
-      };
-
-      expect(Compiler.flattenObject(object)).toEqual(object);
-    });
-
-    it('should flatten a simple nested object', function() {
-      var object = {
-        1: {2: {}}
-      };
-
-      var flattened = {'1 2': {}}
-
-      expect(Compiler.flattenObject(object)).toEqual(flattened);
-    });
   });
 
 });

@@ -49,11 +49,13 @@ function Compiler() {}
 
 // compiles a javascript object in compatible format to native css
 Compiler.jsToCSS =  jsToCSS;
-function jsToCSS(blocks, level) {
+function jsToCSS(blocks) {
   var css = [],
     selector,
     block,
     cssBlock;
+
+  blocks = preProcess(blocks);
 
   for(selector in blocks) {
     block = blocks[selector];
@@ -64,7 +66,7 @@ function jsToCSS(blocks, level) {
       block = block(selector);
     }
 
-    cssBlock = compileBlock(selector, block, level);
+    cssBlock = Compiler.compileBlock(selector, block);
 
     css.push(cssBlock);
   }
@@ -72,20 +74,43 @@ function jsToCSS(blocks, level) {
   return css.join('\n');
 }
 
+// pre-processor for css compilation
+// flattens a java-script object
+// thens un-flattens one level from the bottom
+function preProcess(blocks) {
+  var processed = flatten(blocks);
+  return unflatten(processed);
+}
+
+Compiler.compileBlock = compileBlock;
+function compileBlock(selector, block) {
+  var css = selector + ' {\n',
+    property,
+    value;
+
+  for(property in block) {
+    value = block[property];
+
+    css += '  ' + property + ': ' + value + ';\n';
+  }
+
+  return css + '}';
+}
+
 CSJS.Util = Util;
 function Util() {}
 
-// delimter for various mapping util
+// delimter for various util functions
 Util.delimiter = ' ';
+
 
 /*
  * Flattens an object
  * @param {object} object - object to flatten
- * @param {boolean} shallow - if true object is only flattened one level
  * @return {object} - flattened object
  */
 Util.flatten = flatten;
-function flatten(object, shallow) {
+function flatten(object) {
   var flattened = {},
     property,
     value,
@@ -95,12 +120,9 @@ function flatten(object, shallow) {
   for(property in object) {
     value = object[property];
 
-    if(typeof value === 'object' && shallow !== null && value !== null) {
+    if(typeof value === 'object' && value !== null) {
 
-      // if shallow is required, set shallow to stopping keyword null
-      if(shallow) shallow = null;
-
-      nextLevel = flatten(value, shallow);
+      nextLevel = flatten(value);
       prefix = property + Util.delimiter;
 
       Util.merge(flattened, nextLevel, prefix);
@@ -112,6 +134,7 @@ function flatten(object, shallow) {
 
   return flattened;
 }
+
 
 /*
  * Destructively merges source data to an object
@@ -135,6 +158,44 @@ function merge(object, source, prefix) {
   }
 
   return object;
+}
+
+
+/*
+ * Un-Flattens an object one level from the bottom
+ * @param {object} object - object to un-flatten
+ * @return {object} - un-flattened object
+ */
+
+// work in progress - a bit messy
+// could probably use recursion
+
+Util.unflatten = unflatten;
+function unflatten(object) {
+  var unflattened = {},
+    property,
+    value,
+    propertySegments,
+    nextProperty,
+    remaining;
+
+  for(property in object) {
+    value = object[property];
+
+    propertySegments = property.split(Util.delimiter);
+    nextProperty = propertySegments.pop();
+    remaining = propertySegments.join(Util.delimiter);
+
+    if(remaining.length) {
+      unflattened[remaining] = unflattened[remaining] || {};
+      unflattened[remaining][nextProperty] = value;
+    } else {
+      unflattened[nextProperty] = value;
+    }
+
+  }
+
+  return unflattened;
 }
 
 

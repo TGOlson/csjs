@@ -42,27 +42,6 @@ describe('Util.flatten', function() {
     expect(flatten(object)).toEqual(flattened);
   });
 
-  it('should flatten an object with complex paths using the shallow flag', function() {
-    var object = {
-      1: {
-        2: 3,
-        4: {5: 6},
-        7: {8: 9, 10: 11}
-      },
-      12: 13
-    };
-
-    var flattened = {
-      '12': 13,
-      '1 2': 3,
-      '1 4': { '5': 6 },
-      '1 7': { '8': 9, '10': 11 }
-    };
-
-    expect(flatten(object, true)).toEqual(flattened);
-  });
-
-
   it('should flatten an object null values', function() {
     var object = {1: {2: null}};
 
