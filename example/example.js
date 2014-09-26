@@ -1,17 +1,16 @@
-var Compiler = CSJS.Compiler;
+var padding = '10px',
+  mainColor = '#1E2FF5';
 
-var mainColor = '#abbccc';
-var padding = '10px'
-
-var css = Compiler.jsToCSS({
+new CSJS.StyleSheet({
   p: {
-    color: mainColor,
+    padding: padding,
+    color: 'green',
     span: {
-      padding: padding
+      color: mainColor
     }
   },
   div: {
-    border: '1px solid black',
+    border: '1px solid ' + mainColor,
     ul: {
       li: {
         'list-style': 'none'
@@ -26,4 +25,3 @@ var css = Compiler.jsToCSS({
   }
 });
 
-console.log(css);

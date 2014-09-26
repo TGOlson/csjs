@@ -5,18 +5,19 @@ Write CSS in JavaScript.
 ## Usage
 
 ```js
-var mainColor = '#abbccc',
-  padding = '10px';
+var padding = '10px',
+  mainColor = '#1E2FF5';
 
 new CSJS.StyleSheet({
   p: {
-    color: mainColor,
+    padding: padding,
+    color: 'green',
     span: {
-      padding: padding
+      color: mainColor
     }
   },
   div: {
-    border: '1px solid black',
+    border: '1px solid ' + mainColor,
     ul: {
       li: {
         'list-style': 'none'
@@ -34,13 +35,14 @@ new CSJS.StyleSheet({
 
 ```css
 p {
-  color: #abbccc;
+  padding: 10px;
+  color: green;
 }
 p span {
-  padding: 10px;
+  color: #1E2FF5;
 }
 div {
-  border: 1px solid black;
+  border: 1px solid #1E2FF5;
 }
 div ul li {
   list-style: none;
@@ -75,3 +77,4 @@ $ jasmine-node spec/
 * Implement `StyleSheet` class
 * Implement `Style` class
 * Look into an evented interface
+* Create some helper functions for creating styles

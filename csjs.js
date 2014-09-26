@@ -22,14 +22,31 @@
 function CSJS() {}
 
 
-
 /**
  * Constructs a style-sheet which contains a direct reference of all styles
  * coerces promises from different systems.
  * @param {object} styleObject - styles declaration blocks to instantiate style-sheet with
  */
 CSJS.StyleSheet = StyleSheet;
-function StyleSheet(declarationBlocks, id) {}
+function StyleSheet(blocks) {
+  this.css = Compiler.compile(blocks);
+  this.element = createStyleElement();
+  this.compile();
+}
+
+function createStyleElement() {
+  var style = document.createElement('style');
+  style.type = 'text/css';
+
+  return style;
+}
+
+StyleSheet.prototype.compile = function() {
+  var style = this.element;
+
+  style.innerHTML = this.css;
+  document.getElementsByTagName('head')[0].appendChild(style);
+};
 
 
 /**
@@ -48,8 +65,8 @@ CSJS.Compiler = Compiler;
 function Compiler() {}
 
 // compiles a javascript object in compatible format to native css
-Compiler.jsToCSS =  jsToCSS;
-function jsToCSS(blocks) {
+Compiler.compile =  compile;
+function compile(blocks) {
   var css = [],
     selector,
     block,
