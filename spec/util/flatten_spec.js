@@ -14,7 +14,6 @@ describe('Util.flatten', function() {
     expect(flatten(object)).toEqual({'1 2': 3});
   });
 
-
   it('should flatten an object with multiple paths', function() {
     var object = {1: {2: 3}, 5: {6: 7}};
 
@@ -58,5 +57,4 @@ describe('Util.flatten', function() {
 
     expect(flatten(object)).toEqual(flattened);
   });
-
 });

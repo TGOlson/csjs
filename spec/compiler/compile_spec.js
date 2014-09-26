@@ -96,7 +96,7 @@ describe('Compiler.compile', function() {
     expect(compile(object)).toBe(css);
   });
 
-  it('should convert an sudo selector to css', function() {
+  it('should convert a sudo-selector to css', function() {
     var object = {
       'button:hover': {color: 'green'}
     };
@@ -283,5 +283,4 @@ describe('Compiler.compile', function() {
 
     expect(compile(object)).toBe(css);
   });
-
 });
