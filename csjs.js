@@ -93,7 +93,7 @@ function compile(blocks) {
 
 // pre-processor for css compilation
 // flattens a java-script object
-// thens un-flattens one level from the bottom
+// then un-flattens one level from the bottom
 function preProcess(blocks) {
   var processed = flatten(blocks);
   return unflatten(processed);
