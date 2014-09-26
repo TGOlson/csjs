@@ -7,7 +7,7 @@ describe('Util.merge', function() {
         source = {3: 4, 5: 6},
         merged = {1: 2, 3: 4, 5: 6};
 
-    merge(object, source)
+    merge(object, source);
 
     expect(object).toEqual(merged);
   });
@@ -25,7 +25,7 @@ describe('Util.merge', function() {
         source = {3: 4, 5: 6},
         merged = {1: 2, '!3': 4, '!5': 6};
 
-    merge(object, source, '!')
+    merge(object, source, '!');
 
     expect(object).toEqual(merged);
   });
