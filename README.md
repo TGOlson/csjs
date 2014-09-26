@@ -5,43 +5,49 @@ Write CSS in JavaScript.
 ## Usage
 
 ```js
+var mainColor = '#abbccc',
+  padding = '10px';
+
 new CSJS.StyleSheet({
-  h1: {
-    color: 'red',
-    padding: '5px',
-    border: '1px solid black'
+  p: {
+    color: mainColor,
+    span: {
+      padding: padding
+    }
   },
-  '.header': {
-    'font-size': '20px'
+  div: {
+    border: '1px solid black',
+    ul: {
+      li: {
+        'list-style': 'none'
+      }
+    }
   },
-  '#custom-subtext': {
-    'text-decoration': 'underline'
-  },
-  li: {
-    'list-style': 'none',
-    'background-color': 'green'
+  h1: function() {
+    return {
+      'font-size': '30px',
+      'text-decoration': 'underline'
+    };
   }
 });
 ```
 
 ```css
-h1 {
-  color: red;
-  padding: 5px;
+p {
+  color: #abbccc;
+}
+p span {
+  padding: 10px;
+}
+div {
   border: 1px solid black;
 }
-
-.header {
-  font-size: 20px;
-}
-
-#custom-subtext {
-  text-decoration: underline;
-}
-
-li {
+div ul li {
   list-style: none;
-  background-color: green;
+}
+h1 {
+  font-size: 30px;
+  text-decoration: underline;
 }
 ```
 
