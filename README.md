@@ -69,3 +69,9 @@ Run the specs
 $ jasmine-node spec/
 ```
 
+## TODO
+
+* Add advanced nesting controls (LESS's `&`, etc.)
+* Implement `StyleSheet` class
+* Implement `Style` class
+* Look into an evented interface
