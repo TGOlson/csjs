@@ -38,27 +38,6 @@ describe('StyleSheet', function() {
       expect(styleSheet.styles).toBeDefined();
     });
 
-    it('should create a new StyleSheet of true is the default setting is true', function() {
-      var styleSheet = new StyleSheet('main');
-      expect(styleSheet.autoCompile).toBe(true);
-    });
-
-    it('should create a new StyleSheet of false is the default setting is false', function() {
-      CSJS.autoCompile = false;
-
-      var styleSheet = new StyleSheet('main');
-
-      expect(styleSheet.autoCompile).toBe(false);
-    });
-
-    it('should change auto compile settings if the default is set after instantiation', function() {
-      var styleSheet = new StyleSheet('main');
-
-      CSJS.autoCompile = false;
-
-      expect(styleSheet.autoCompile).toBe(false);
-    });
-
     it('should set an element property', function() {
       var styleSheet = new StyleSheet();
 
@@ -70,10 +49,9 @@ describe('StyleSheet', function() {
         p: {color: 'green'}
       });
 
-      // console.log(st)
+      var style = styleSheet.styles.p;
 
-      // TODO: update this
-      expect(styleSheet.styles).toBeDefined();
+      expect(style instanceof CSJS.Style).toBe(true);
     });
 
   });

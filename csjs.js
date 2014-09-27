@@ -22,15 +22,60 @@
  */
 function CSJS() {}
 
-
 // auto compile style-sheets on any style changes
 CSJS.autoCompile = true;
 
-// private list of style-sheet
-CSJS._styleSheets = {};
+// minify style-sheets during compilation
+CSJS.minify = false;
 
 // id to use when one is not supplied
-CSJS._defaultId = 'stylesheet';
+CSJS.defaultId = 'stylesheet';
+
+// private list of style-sheets
+CSJS._styleSheets = {};
+
+CSJS.getStyleSheet = getStyleSheet;
+function getStyleSheet(id) {
+  if(id === undefined) throw new Error('Cannot get stylesheet without id.');
+  return CSJS._styleSheets[id];
+}
+
+CSJS.addStyleSheet = addStyleSheet;
+function addStyleSheet(styleSheet) {
+  if(!CSJS.isStyleSheet(styleSheet)) {
+    throw new Error('Object must be of type StyleSheet.');
+  }
+
+  var id = styleSheet.id,
+    styleSheets = CSJS._styleSheets;
+
+  if(styleSheets[id]) throw new Error('StyleSheet \'' + id + '\' already initialized.');
+
+  styleSheets[id] = styleSheet;
+
+  return styleSheet;
+}
+
+CSJS.removeStyleSheet = removeStyleSheet;
+function removeStyleSheet(id) {
+  if(id === undefined) throw new Error('Cannot remove stylesheet without id.');
+  delete CSJS._styleSheets[id];
+}
+
+CSJS.isStyleSheet = isStyleSheet;
+function isStyleSheet(object) {
+  return object instanceof CSJS.StyleSheet;
+}
+
+CSJS.clearStyleSheets = clearStyleSheets;
+function clearStyleSheets() {
+  CSJS._styleSheets = {};
+}
+
+// expose main compiler function as library utility
+// compile is defined under Compiler.compile
+// not currently used in any core functionality
+CSJS.compile = compile;
 
 
 /**
@@ -48,15 +93,11 @@ function StyleSheet(id, styles) {
 
   id = id || CSJS._defaultId;
 
-  if(CSJS._styleSheets[id]) throw new Error('StyleSheet \'' + id + '\' already initialized.');
-
   this.id = id;
   this.styles = {};
-  this.autoCompile = CSJS.autoCompile;
   this.element = createStyleElement(id);
 
-  // should use CSJS.addStyleSheet()
-  CSJS._styleSheets[id] = this;
+  CSJS.addStyleSheet(this);
 
   this.addStyles(styles);
 
@@ -174,7 +215,11 @@ function Compiler() {}
 // compiles a javascript object in compatible format to native css
 Compiler.compile =  compile;
 function compile(blocks) {
-  var css = [],
+  if(typeof blocks !== 'object') throw new Error('Must supply object to compile.');
+
+  var minify = CSJS.minify,
+    delimiter = minify ? '' : '\n',
+    css = [],
     selector,
     block,
     cssBlock;
@@ -195,7 +240,7 @@ function compile(blocks) {
     css.push(cssBlock);
   }
 
-  return css.join('\n');
+  return css.join(delimiter);
 }
 
 // pre-processor for css compilation
@@ -209,7 +254,10 @@ function preProcess(blocks) {
 
 Compiler.compileBlock = compileBlock;
 function compileBlock(selector, block) {
-  var css = selector + ' {\n',
+  var minify = CSJS.minify,
+    newLine = minify ? '' : '\n',
+    space = minify ? '' : ' ',
+    css = selector + space + '{' + newLine,
     property,
     value;
 
@@ -224,7 +272,7 @@ function compileBlock(selector, block) {
       value = value(property);
     }
 
-    css += '  ' + property + ': ' + value + ';\n';
+    css += space + space + property + ':' + space + value + ';' + newLine;
   }
 
   return css + '}';
