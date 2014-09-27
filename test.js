@@ -1,7 +1,7 @@
 var CSJS = require('./csjs');
 
 // toggle minification
-// CSJS.minify = true;
+CSJS.minify = true;
 
 
 /*
@@ -29,11 +29,15 @@ var defaultBlock = {
  * Test helpers
  */
 
+var iterations = 50;
+
 function timer(func) {
   var start = new Date(),
     duration;
 
-  func();
+  for(var i = 0; i < iterations; i++) {
+    func();
+  }
 
   duration = new Date() - start;
 
@@ -42,7 +46,7 @@ function timer(func) {
 }
 
 
-var blockCount = 5000;
+var blockCount = 100;
 
 // stats at 5000 blocks:
 // 490,000+ chars minified (launchpad is about 100k)
@@ -72,7 +76,7 @@ function testLiveCompilation() {
 
   timer(function() {
     var css = CSJS.compile(blocks);
-    console.log('Chars compiled:', css.length);
+    // console.log('Chars compiled:', css.length);
   });
 }
 
@@ -84,7 +88,7 @@ function testStyleSheetInit() {
   console.log('Initializing StyleSheet with', blockCount, 'styles.');
 
   timer(function() {
-    new CSJS.StyleSheet('test-init', blocks);
+    new CSJS.StyleSheet(blocks);
   });
 }
 
@@ -93,7 +97,7 @@ function testStyleSheetInit() {
 // tests recompiling a style-sheet that is already initialized
 function testStyleSheetRecompile() {
   var blocks = makeBlocks(),
-    styleSheet = new CSJS.StyleSheet('test-recompile', blocks);
+    styleSheet = new CSJS.StyleSheet(blocks);
 
   console.log('Re-compiling StyleSheet with', blockCount, 'styles.');
 
@@ -107,13 +111,13 @@ function testStyleSheetRecompile() {
  * Run tests
  */
 
-// testLiveCompilation();
+testLiveCompilation();
 // 290ms to compile
 // minification doesn't seem to make difference
 // when split into 50 style-sheets of 100 blocks ~ 100ms to compile
 
 
-// testStyleSheetInit();
+testStyleSheetInit();
 // 450ms to init/compile
 
 

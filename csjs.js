@@ -50,7 +50,7 @@ function addStyleSheet(styleSheet) {
   var id = styleSheet.id,
     styleSheets = CSJS._styleSheets;
 
-  if(CSJS.getStyleSheet(id)) throw new Error('StyleSheet \'' + id + '\' already initialized.');
+  // if(CSJS.getStyleSheet(id)) throw new Error('StyleSheet \'' + id + '\' already initialized.');
 
   styleSheets[id] = styleSheet;
 
