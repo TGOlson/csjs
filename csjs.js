@@ -119,12 +119,9 @@ StyleSheet.prototype.getStyle = function(selector) {
   return this.styles[selector];
 };
 
-StyleSheet.prototype.hasStyle = function(selector) {
-  if(!validSelector(selector)) throw new Error('Invalid selector.');
-  return !!this.styles[selector];
-};
-
 StyleSheet.prototype.addStyles = function(blocks) {
+  if(blocks && !validBlocks(blocks)) throw new Error('Invalid style blocks.');
+
   var styles = [],
     selector,
     declarations,
@@ -234,6 +231,10 @@ function hasDocument() {
 
 function validSelector(selector) {
   return typeof selector === 'string';
+}
+
+function validBlocks(blocks) {
+  return typeof blocks === 'object';
 }
 
 

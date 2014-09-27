@@ -4,7 +4,7 @@ describe('CSJS', function() {
 
   beforeEach(function() {
 
-    // reset stylesheet cache before each test
+    // reset style-sheet cache before each test
     CSJS.clearStyleSheets();
   });
 
