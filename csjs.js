@@ -29,7 +29,7 @@ CSJS.autoCompile = true;
 CSJS.minify = false;
 
 // id to use when one is not supplied
-CSJS.defaultId = 'stylesheet';
+CSJS.defaultId = 'style-sheet';
 
 // private list of style-sheets
 CSJS._styleSheets = {};
@@ -40,7 +40,8 @@ function getStyleSheet(id) {
   return CSJS._styleSheets[id];
 }
 
-CSJS.addStyleSheet = addStyleSheet;
+// private cache helper
+// not for external use
 function addStyleSheet(styleSheet) {
   if(!CSJS.isStyleSheet(styleSheet)) {
     throw new Error('Object must be of type StyleSheet.');
@@ -105,7 +106,7 @@ function StyleSheet(id, blocks) {
   this.styles = {};
   this.element = createStyleElement(id);
 
-  CSJS.addStyleSheet(this);
+  addStyleSheet(this);
 
   this.addStyles(blocks);
 
@@ -116,6 +117,11 @@ function StyleSheet(id, blocks) {
 StyleSheet.prototype.getStyle = function(selector) {
   if(!validSelector(selector)) throw new Error('Invalid selector.');
   return this.styles[selector];
+};
+
+StyleSheet.prototype.hasStyle = function(selector) {
+  if(!validSelector(selector)) throw new Error('Invalid selector.');
+  return !!this.styles[selector];
 };
 
 StyleSheet.prototype.addStyles = function(blocks) {
@@ -155,6 +161,16 @@ StyleSheet.prototype.addStyle = function(selector, declarations) {
   }
 
   return style;
+};
+
+StyleSheet.prototype.updateStyle = function(selector, declarations) {
+  var style = this.getStyle(selector);
+
+  if(style) {
+    return style.update(declarations);
+  } else {
+    throw new Error('Cannot update undefined style');
+  }
 };
 
 StyleSheet.prototype.removeStyle = function(selector) {
@@ -239,7 +255,20 @@ Style.prototype.toCSS = function() {
 };
 
 Style.prototype.get = function(property) {
-  return this.declarations[property];
+  var declarations = this.declarations,
+    value;
+
+  if(typeof declarations === 'function') {
+    declarations = declarations(this.selector);
+  }
+
+  value = declarations[property];
+
+  if(typeof value === 'function') {
+    value = value(this.selector);
+  }
+
+  return value;
 };
 
 Style.prototype.update = function(declarations) {

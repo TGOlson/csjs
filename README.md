@@ -106,6 +106,17 @@ style.getValue('color');
 // => 'green'
 ```
 
+**note: using `style.getValue` will not work for styles with values that are defined as functions. This is because functional declarations and values are evaluated at compile time.
+
+```js
+var style = styleSheet.addStyle('p', function() {
+    return {color: 'green'};
+  });
+
+style.get('color');
+// => undefined
+```
+
 * Auto-compilation
 
 The above examples work by leveraging auto compilation. However, if this is undesirable, it can be toggled off by setting the global `autoCompile` variable:
@@ -135,3 +146,4 @@ $ jasmine-node spec/
 * Add advanced nesting controls (LESS's `&`, etc.)
 * Look into an evented interface
 * Create some helper functions for creating styles
+* Look into bugs with adding declarations to style with preexisting functional declarations.

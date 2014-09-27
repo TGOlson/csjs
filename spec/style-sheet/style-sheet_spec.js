@@ -6,7 +6,7 @@ describe('StyleSheet', function() {
   beforeEach(function() {
 
     // reset stylesheet cache before each test
-    CSJS._styleSheets = {};
+    CSJS.clearStyleSheets();
   });
 
   describe('instantiation', function() {
@@ -17,7 +17,7 @@ describe('StyleSheet', function() {
 
     it('should create a StyleSheet with a default id if none is supplied', function() {
       var styleSheet = new StyleSheet();
-      expect(styleSheet.id).toBe('stylesheet');
+      expect(styleSheet.id).toBe('style-sheet');
     });
 
     it('should create a new StyleSheet with an id', function() {
