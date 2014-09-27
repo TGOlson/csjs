@@ -1,6 +1,8 @@
 var padding = '10px',
   mainColor = '#1E2FF5';
 
+// CSJS.minify = true;
+
 var styleSheet = new CSJS.StyleSheet('main', {
   p: {
     padding: padding,

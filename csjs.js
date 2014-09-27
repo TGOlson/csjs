@@ -36,7 +36,7 @@ CSJS._styleSheets = {};
 
 CSJS.getStyleSheet = getStyleSheet;
 function getStyleSheet(id) {
-  if(id === undefined) throw new Error('Cannot get stylesheet without id.');
+  if(!validId(id)) throw new Error('Invalid id.');
   return CSJS._styleSheets[id];
 }
 
@@ -49,7 +49,7 @@ function addStyleSheet(styleSheet) {
   var id = styleSheet.id,
     styleSheets = CSJS._styleSheets;
 
-  if(styleSheets[id]) throw new Error('StyleSheet \'' + id + '\' already initialized.');
+  if(CSJS.getStyleSheet(id)) throw new Error('StyleSheet \'' + id + '\' already initialized.');
 
   styleSheets[id] = styleSheet;
 
@@ -58,8 +58,13 @@ function addStyleSheet(styleSheet) {
 
 CSJS.removeStyleSheet = removeStyleSheet;
 function removeStyleSheet(id) {
-  if(id === undefined) throw new Error('Cannot remove stylesheet without id.');
-  delete CSJS._styleSheets[id];
+  if(!validId(id)) throw new Error('Invalid id.');
+
+  var styleSheet = CSJS.getStyleSheet(id);
+
+  if(styleSheet) delete CSJS._styleSheets[id];
+
+  return styleSheet;
 }
 
 CSJS.isStyleSheet = isStyleSheet;
@@ -70,6 +75,10 @@ function isStyleSheet(object) {
 CSJS.clearStyleSheets = clearStyleSheets;
 function clearStyleSheets() {
   CSJS._styleSheets = {};
+}
+
+function validId(id) {
+  return typeof id === 'string';
 }
 
 // expose main compiler function as library utility
@@ -85,13 +94,12 @@ CSJS.compile = compile;
  * @return {StyleSheet}
  */
 CSJS.StyleSheet = StyleSheet;
-function StyleSheet(id, styles) {
+function StyleSheet(id, blocks) {
 
   if(!id || typeof id !== 'string') {
-    styles = id;
+    blocks = id;
+    id = CSJS.defaultId;
   }
-
-  id = id || CSJS._defaultId;
 
   this.id = id;
   this.styles = {};
@@ -99,66 +107,86 @@ function StyleSheet(id, styles) {
 
   CSJS.addStyleSheet(this);
 
-  this.addStyles(styles);
+  this.addStyles(blocks);
 
   // should check to see if auto-compile is true
   this.compile();
 }
 
-StyleSheet.prototype.addStyles = function(styles) {
-  var _styles = [],
+StyleSheet.prototype.getStyle = function(selector) {
+  if(!validSelector(selector)) throw new Error('Invalid selector.');
+  return this.styles[selector];
+};
+
+StyleSheet.prototype.addStyles = function(blocks) {
+  var styles = [],
     selector,
     declarations,
     style;
 
-  styles = Compiler.preProcess(styles);
+  blocks = Compiler.preProcess(blocks);
 
-  for(selector in styles) {
-    declarations = styles[selector];
+  for(selector in blocks) {
+    declarations = blocks[selector];
 
-    // should try to update existing styles first
-    style = new Style(selector, declarations);
+    style = this.addStyle(selector, declarations);
 
-    this.styles[style.selector] = style;
-
-    _styles.push(style);
+    styles.push(style);
   }
 
-  return _styles;
+  return styles;
+};
+
+StyleSheet.prototype.addStyle = function(selector, declarations) {
+  var style = this.getStyle(selector);
+
+  // should add logic to allow passing in of already created style object
+  // if(selector instanceof CSJS.Style) style = selector;
+
+  if(style) {
+
+    // update existing style if one exists
+    style.update(declarations);
+  } else {
+    style = new Style(selector, declarations);
+
+    // add to style-sheet style list if new
+    this.styles[selector] = style;
+  }
+
+  return style;
+};
+
+StyleSheet.prototype.removeStyle = function(selector) {
+  var style = this.getStyle(selector);
+
+  if(style) delete this.styles[selector];
+
+  return style;
 };
 
 function createStyleElement(id) {
-  var style = createElement('style');
+  var name = 'style',
+    style;
+
+  if(hasDocument()) {
+    style = document.createElement(name);
+    style.setAttribute('id', id);
+  } else {
+    style = {name: name};
+    style.id = id;
+  }
+
   style.type = 'text/css';
-  setAttribute(style, "id", id);
+
   return style;
 }
 
-function createElement(name) {
-  var element;
-
-  if(hasDocument()) {
-    element = document.createElement(name);
-  } else {
-    element = {name: name};
-  }
-
-  return element;
-}
-
-function setAttribute(object, attribute, value) {
-  if(hasDocument()) {
-    object.setAttribute(attribute, value);
-  } else {
-    object[attribute] = value;
-  }
-
-  return object;
-}
-
 StyleSheet.prototype.toCSS = function() {
-  var css = [],
+  var minify = CSJS.minify,
+    delimiter = minify ? '' : '\n',
     styles = this.styles,
+    css = [],
     selector,
     style;
 
@@ -167,7 +195,7 @@ StyleSheet.prototype.toCSS = function() {
     css.push(style.toCSS());
   }
 
-  return css.join('\n');
+  return css.join(delimiter);
 };
 
 StyleSheet.prototype.compile = function() {
@@ -178,15 +206,18 @@ StyleSheet.prototype.compile = function() {
 
   if(hasDocument()) {
     document.getElementsByTagName('head')[0].appendChild(style);
-  } else {
-    // can't yet compile out of a browser setting
   }
 
+  return css;
 };
 
 function hasDocument() {
   // return false; // dev use
   return typeof document === 'object';
+}
+
+function validSelector(selector) {
+  return typeof selector === 'string';
 }
 
 
@@ -197,13 +228,47 @@ function hasDocument() {
  */
 CSJS.Style = Style;
 function Style(selector, declarations) {
-  this.selector = selector;
-  this.declarations = declarations;
+  if(!validSelector(selector)) throw new Error('Invalid selector.');
+
+  this.selector = selector || null;
+  this.declarations = declarations || {};
 }
 
 Style.prototype.toCSS = function() {
   return Compiler.compileBlock(this.selector, this.declarations);
 };
+
+Style.prototype.get = function(property) {
+  return this.declarations[property];
+};
+
+Style.prototype.update = function(declarations) {
+  if(!validDeclarations(declarations)) throw new Error('Invalid declarations.');
+
+  var property,
+    value;
+
+  for(property in declarations) {
+    value = declarations[property];
+    this.declarations[property] = value;
+  }
+
+  return this;
+};
+
+Style.prototype.remove = function(property) {
+  if(!validProperty(property)) throw new Error('Invalid property.');
+  delete this.declarations[property];
+  return this;
+};
+
+function validDeclarations(declarations) {
+  return typeof declarations === 'object';
+}
+
+function validProperty(property) {
+  return typeof property === 'string';
+}
 
 
 /**
