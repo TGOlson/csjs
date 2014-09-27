@@ -52,11 +52,13 @@ function StyleSheet(id, styles) {
 
   this.id = id;
   this.styles = {};
-  this.addStyles(styles);
   this.autoCompile = CSJS.autoCompile;
   this.element = createStyleElement(id);
 
+  // should use CSJS.addStyleSheet()
   CSJS._styleSheets[id] = this;
+
+  this.addStyles(styles);
 
   // should check to see if auto-compile is true
   this.compile();
@@ -86,18 +88,15 @@ StyleSheet.prototype.addStyles = function(styles) {
 
 function createStyleElement(id) {
   var style = createElement('style');
-
   style.type = 'text/css';
-
   setAttribute(style, "id", id);
-
   return style;
 }
 
 function createElement(name) {
   var element;
 
-  if(typeof document === 'object') {
+  if(hasDocument()) {
     element = document.createElement(name);
   } else {
     element = {name: name};
@@ -107,7 +106,7 @@ function createElement(name) {
 }
 
 function setAttribute(object, attribute, value) {
-  if(typeof document === 'object') {
+  if(hasDocument()) {
     object.setAttribute(attribute, value);
   } else {
     object[attribute] = value;
@@ -124,7 +123,6 @@ StyleSheet.prototype.toCSS = function() {
 
   for(selector in styles) {
     style = styles[selector];
-
     css.push(style.toCSS());
   }
 
@@ -132,16 +130,23 @@ StyleSheet.prototype.toCSS = function() {
 };
 
 StyleSheet.prototype.compile = function() {
-  var style = this.element;
+  var style = this.element,
+    css = this.toCSS();
 
-  if(typeof document === 'object') {
-    style.innerHTML = this.toCSS();
+  style.innerHTML = css;
+
+  if(hasDocument()) {
     document.getElementsByTagName('head')[0].appendChild(style);
   } else {
     // can't yet compile out of a browser setting
   }
 
 };
+
+function hasDocument() {
+  // return false; // dev use
+  return typeof document === 'object';
+}
 
 
 /**
