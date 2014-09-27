@@ -2,7 +2,7 @@ var CSJS = require('./csjs');
 
 var block = {};
 
-for(var i = 0; i < 100; i++) {
+for(var i = 0; i < 5000; i++) {
   block[i] = {
     color: 'blue',
     div: {color: 'red'},
@@ -16,9 +16,9 @@ for(var i = 0; i < 100; i++) {
 
 function timer(func) {
   var start = new Date();
-  for(var i = 0; i < 50; i++) {
+  // for(var i = 0; i < 50; i++) {
     func();
-  }
+  // }
 
   return new Date() - start;
 }

@@ -2,6 +2,16 @@
 
 Write CSS in JavaScript.
 
+## Features
+
+Write all your styles in JavaScript. This allows to functionality that even LESS and SASS can't accomplish, while retaining all the benefits they do offer.
+
+* Pass around references  to style objects.
+* Dynamically modify styles.
+* Defining style values with variables, loops or with functions.
+* Subscribe to style-change events.
+* Dynamically minify styles.
+
 ## Usage
 
 ```js
@@ -53,9 +63,58 @@ h1 {
 }
 ```
 
-## Features
+* Programmatically add styles
 
-Write CSS in JavaScript
+```js
+var styleSheet = CSJS.getStyleSheet('main');
+
+styleSheet.addStyle('p', {color: 'purple'});
+// => [object Style]
+```
+
+The current style-sheet will now include the defined style `p {color: purple;}`.
+
+* Edit previous styles
+
+```js
+styleSheet.updateStyle('p', {color: 'green'});
+// => [object Style]
+```
+
+Now the original style is updated `p {color: green;}`.
+
+* Interact with style objects
+
+```js
+var style = styleSheet.getStyle('p');
+
+style.toCSS();
+// "p {
+//   color: green;
+// }"
+
+style.update({'background-color:' 'yellow'});
+// => [object Style]
+
+style.toCSS();
+// "p {
+//   color: green;
+//   background-color: yellow;
+// }"
+
+style.getValue('color');
+// => 'green'
+```
+
+* Auto-compilation
+
+The above examples work by leveraging auto compilation. However, if this is undesirable, it can be toggled off by setting the global `autoCompile` variable:
+
+```js
+// define auto-compilation for all style-sheets
+// the below will stop style-sheets from auto-comiling
+CSJS.autoCompile = false;
+```
 
 ## Specs
 
@@ -74,7 +133,5 @@ $ jasmine-node spec/
 ## TODO
 
 * Add advanced nesting controls (LESS's `&`, etc.)
-* Implement `StyleSheet` class
-* Implement `Style` class
 * Look into an evented interface
 * Create some helper functions for creating styles
