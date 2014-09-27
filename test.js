@@ -29,7 +29,7 @@ var defaultBlock = {
  * Test helpers
  */
 
-var iterations = 50;
+var iterations = 1;
 
 function timer(func) {
   var start = new Date(),
@@ -76,7 +76,7 @@ function testLiveCompilation() {
 
   timer(function() {
     var css = CSJS.compile(blocks);
-    // console.log('Chars compiled:', css.length);
+    console.log('Chars compiled:', css.length);
   });
 }
 

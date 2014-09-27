@@ -159,47 +159,49 @@ Character count:
 
 **(these character counts mirror what one might expect from *very* large scale production apps)**
 
-Compiling all 5,000 blocks at once:
+Compiling all 5,000 style blocks at once:
 ```
-Live compiling 5000 styles.
+Live compiling 5000 style blocks.
 Duration: 288ms
 
-Initializing style-sheet with 5000 styles.
+Initializing style-sheet with 5000 style blocks.
 Duration: 469ms
 
-Re-compiling style-sheet with 5000 styles.
+Re-compiling style-sheet with 5000 style blocks.
 Duration: 154ms
 ```
 
 Note, at this block size, compilation speeds start to drag. A smarter technique would be to split the styles into smaller style sheets.
 
-Compiling 10 sets of 500 blocks:
+Compiling 10 sets of 500 style blocks:
 ```
-Live compiling 10 sets of 500 styles.
+Live compiling 10 sets of 500 style blocks.
 Duration: 139ms
 
-Initializing 10 style-sheets with 500 styles each.
+Initializing 10 style-sheets with 500 style blocks each.
 Duration: 144ms
 
-Re-compiling 10 style-sheets with 500 styles each.
+Re-compiling 10 style-sheets with 500 style blocks each.
 Duration: 25ms
 ```
 
-And even better - 50 stylesheets of 100 style blocks each (close to how traditional style-sheets may be structured)
+And even better - 50 style-sheets of 100 style blocks each (close to how traditional style-sheets may be structured)
 
-Compiling 50 sets of 100 blocks:
+Compiling 50 sets of 100 style blocks:
 ```
-Live compiling 50 sets of 100 styles.
+Live compiling 50 sets of 100 style blocks.
 Duration: 111ms
 
-Initializing 50 style-sheets with 100 styles each.
+Initializing 50 style-sheets with 100 style blocks each.
 Duration: 116ms
 
-Re-compiling 50 style-sheets with 100 styles each.
+Re-compiling 50 style-sheets with 100 style blocks each.
 Duration: 12ms
 ```
 
 Note how recompiling becomes almost instant once style blocks are spread between multiple style-sheets. Using this technique, a huge production app could initialize all their style-sheets on page load in just over 100ms, and recompile every style sheet with updates in just over 10ms.
+
+Another benefit of creating multiple style-sheets is that generally only one style-sheet will need to be recompiled at any given time. Re-compiling a single style-sheet of 100 style blocks takes less than 1ms. (in this test, 100 style blocks define 500 unique CSS styles - roughly 9,270 characters minified)
 
 ## Specs
 
