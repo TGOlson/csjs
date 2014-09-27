@@ -322,9 +322,16 @@ function compileBlock(selector, block) {
   var minify = CSJS.minify,
     newLine = minify ? '' : '\n',
     space = minify ? '' : ' ',
-    css = selector + space + '{' + newLine,
+    css = [],
     property,
     value;
+
+  // css = selector + space + '{' + newLine,
+
+  css.push(selector);
+  css.push(space);
+  css.push('{');
+  css.push(newLine);
 
   if(typeof block === 'function') {
     block = block(selector);
@@ -337,10 +344,21 @@ function compileBlock(selector, block) {
       value = value(property);
     }
 
-    css += space + space + property + ':' + space + value + ';' + newLine;
+    // css += space + space + property + ':' + space + value + ';' + newLine;
+
+    css.push(space);
+    css.push(space);
+    css.push(property);
+    css.push(':');
+    css.push(space);
+    css.push(value);
+    css.push(';');
+    css.push(newLine);
   }
 
-  return css + '}';
+  css.push('}');
+
+  return css.join('');
 }
 
 CSJS.Util = Util;
