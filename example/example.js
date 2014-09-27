@@ -1,7 +1,7 @@
 var padding = '10px',
   mainColor = '#1E2FF5';
 
-new CSJS.StyleSheet({
+var styleSheet = new CSJS.StyleSheet('main', {
   p: {
     padding: padding,
     color: 'green',
@@ -25,3 +25,4 @@ new CSJS.StyleSheet({
   }
 });
 
+console.log(styleSheet);

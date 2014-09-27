@@ -15,6 +15,7 @@
 })(function() {
 'use strict';
 
+
 /**
  * Public API Object
  * Contains core functions and properties
@@ -22,30 +23,124 @@
 function CSJS() {}
 
 
+// auto compile style-sheets on any style changes
+CSJS.autoCompile = true;
+
+// private list of style-sheet
+CSJS._styleSheets = {};
+
+// id to use when one is not supplied
+CSJS._defaultId = 'stylesheet';
+
+
 /**
  * Constructs a style-sheet which contains a direct reference of all styles
- * coerces promises from different systems.
- * @param {object} styleObject - styles declaration blocks to instantiate style-sheet with
+ * @param {string} id - [optional] style-sheet id
+ * @param {object} blocks - [optional] styles declaration blocks to instantiate style-sheet with
+ * @return {StyleSheet}
  */
 CSJS.StyleSheet = StyleSheet;
-function StyleSheet(blocks) {
-  this.css = Compiler.compile(blocks);
-  this.element = createStyleElement();
+function StyleSheet(id, styles) {
+
+  if(!id || typeof id !== 'string') {
+    styles = id;
+  }
+
+  id = id || CSJS._defaultId;
+
+  if(CSJS._styleSheets[id]) throw new Error('StyleSheet \'' + id + '\' already initialized.');
+
+  this.id = id;
+  this.styles = {};
+  this.addStyles(styles);
+  this.autoCompile = CSJS.autoCompile;
+  this.element = createStyleElement(id);
+
+  CSJS._styleSheets[id] = this;
+
+  // should check to see if auto-compile is true
   this.compile();
 }
 
-function createStyleElement() {
-  var style = document.createElement('style');
+StyleSheet.prototype.addStyles = function(styles) {
+  var _styles = [],
+    selector,
+    declarations,
+    style;
+
+  styles = Compiler.preProcess(styles);
+
+  for(selector in styles) {
+    declarations = styles[selector];
+
+    // should try to update existing styles first
+    style = new Style(selector, declarations);
+
+    this.styles[style.selector] = style;
+
+    _styles.push(style);
+  }
+
+  return _styles;
+};
+
+function createStyleElement(id) {
+  var style = createElement('style');
+
   style.type = 'text/css';
+
+  setAttribute(style, "id", id);
 
   return style;
 }
 
+function createElement(name) {
+  var element;
+
+  if(typeof document === 'object') {
+    element = document.createElement(name);
+  } else {
+    element = {name: name};
+  }
+
+  return element;
+}
+
+function setAttribute(object, attribute, value) {
+  if(typeof document === 'object') {
+    object.setAttribute(attribute, value);
+  } else {
+    object[attribute] = value;
+  }
+
+  return object;
+}
+
+StyleSheet.prototype.toCSS = function() {
+  var css = [],
+    styles = this.styles,
+    selector,
+    style;
+
+  for(selector in styles) {
+    style = styles[selector];
+
+    css.push(style.toCSS());
+  }
+
+  return css.join('\n');
+};
+
 StyleSheet.prototype.compile = function() {
   var style = this.element;
 
-  style.innerHTML = this.css;
-  document.getElementsByTagName('head')[0].appendChild(style);
+  if(typeof document === 'object') {
+    style.innerHTML = this.toCSS();
+    document.getElementsByTagName('head')[0].appendChild(style);
+  } else {
+    // can't yet compile out of a browser setting
+  }
+
 };
 
 
@@ -55,7 +150,14 @@ StyleSheet.prototype.compile = function() {
  * @param {object} declarationBlock - style declaration block
  */
 CSJS.Style = Style;
-function Style(selector, declarationBlock) {}
+function Style(selector, declarations) {
+  this.selector = selector;
+  this.declarations = declarations;
+}
+
+Style.prototype.toCSS = function() {
+  return Compiler.compileBlock(this.selector, this.declarations);
+};
 
 
 /**
@@ -94,6 +196,7 @@ function compile(blocks) {
 // pre-processor for css compilation
 // flattens a java-script object
 // then un-flattens one level from the bottom
+Compiler.preProcess = preProcess;
 function preProcess(blocks) {
   var processed = flatten(blocks);
   return unflatten(processed);
@@ -105,8 +208,16 @@ function compileBlock(selector, block) {
     property,
     value;
 
+  if(typeof block === 'function') {
+    block = block(selector);
+  }
+
   for(property in block) {
     value = block[property];
+
+    if(typeof value === 'function') {
+      value = value(property);
+    }
 
     css += '  ' + property + ': ' + value + ';\n';
   }
