@@ -15,7 +15,6 @@
 })(function() {
 'use strict';
 
-
 /**
  * Public API Object
  * Contains core functions and properties
@@ -28,91 +27,33 @@ CSJS.autoCompile = true;
 // minify style-sheets during compilation
 CSJS.minify = false;
 
-// enforce unique style-sheet ids
-// auto increment duplicate ids otherwise
-CSJS.uniqueId = false;
+CSJS.styleSheets = [];
 
-// id to use when one is not supplied
-CSJS.defaultId = 'style-sheet';
-
-// private list of style-sheets
-CSJS._styleSheets = {};
-
-
-CSJS.getStyleSheet = getStyleSheet;
-function getStyleSheet(id) {
-  if(!validId(id)) throw new Error('Invalid id.');
-  return CSJS._styleSheets[id];
-}
-
-// private cache helper
-// not for external use
 function addStyleSheet(styleSheet) {
-  if(!CSJS.isStyleSheet(styleSheet)) {
-    throw new Error('Object must be of type StyleSheet.');
+  CSJS.styleSheets.push(styleSheet);
+}
+
+function removeStyleSheet(styleSheet) {
+  var styleSheets = CSJS.styleSheets,
+    index = styleSheets.indexOf(styleSheet);
+
+  if(index > -1) {
+    styleSheets.splice(index, 1);
   }
-
-  var id = styleSheet.id,
-    styleSheets = CSJS._styleSheets,
-    idExists = !!CSJS.getStyleSheet(id);
-
-  if(idExists) {
-    if(CSJS.uniqueId) {
-      throw new Error('StyleSheet \'' + id + '\' already initialized.');
-    } else {
-      id = CSJS.nextId(id);
-      styleSheet.id = id;
-    }
-  }
-
-  styleSheets[id] = styleSheet;
-
-  return styleSheet;
 }
 
-CSJS.nextId = nextId;
-function nextId(id) {
-  var next = id,
-    styleSheet = CSJS.getStyleSheet(next),
-    i;
-
-  // should this be a while loop?
-  for(i = 2; styleSheet; i++) {
-    next = id + '-' + i;
-    styleSheet = CSJS.getStyleSheet(next);
-  }
-
-  return next;
+function isBrowser() {
+  return typeof document === 'object';
 }
 
-CSJS.removeStyleSheet = removeStyleSheet;
-function removeStyleSheet(id) {
-  if(!validId(id)) throw new Error('Invalid id.');
-
-  var styleSheet = CSJS.getStyleSheet(id);
-
-  if(styleSheet) delete CSJS._styleSheets[id];
-
-  return styleSheet;
-}
-
-CSJS.isStyleSheet = isStyleSheet;
-function isStyleSheet(object) {
-  return object instanceof CSJS.StyleSheet;
-}
-
-CSJS.clearStyleSheets = clearStyleSheets;
-function clearStyleSheets() {
-  CSJS._styleSheets = {};
-}
-
-function validId(id) {
-  return typeof id === 'string';
+function raise(error) {
+  throw new Error(error);
 }
 
 // expose main compiler function as library utility
 // compile is defined under Compiler.compile
 // not currently used in any core functionality
+// should this be a compileAll function?
 CSJS.compile = compile;
 
 
@@ -123,33 +64,28 @@ CSJS.compile = compile;
  * @return {StyleSheet}
  */
 CSJS.StyleSheet = StyleSheet;
-function StyleSheet(id, blocks) {
-
-  if(!id || typeof id !== 'string') {
-    blocks = id;
-    id = CSJS.defaultId;
-  }
-
-  this.id = id;
+function StyleSheet(blocks) {
+  validateBlocks(blocks);
 
   addStyleSheet(this);
 
   this.styles = {};
-  this.element = createStyleElement(this.id);
+  this.element = createStyleElement();
 
-  this.addStyles(blocks);
+  this.add(blocks);
 
   // should check to see if auto-compile is true
-  this.compile();
+  this.compileIfAutoCompile();
 }
 
-StyleSheet.prototype.getStyle = function(selector) {
-  if(!validSelector(selector)) throw new Error('Invalid selector.');
+StyleSheet.prototype.get = function(selector) {
+  validateSelector(selector);
   return this.styles[selector];
 };
 
-StyleSheet.prototype.addStyles = function(blocks) {
-  if(blocks && !validBlocks(blocks)) throw new Error('Invalid style blocks.');
+// add, update, and addStyle should probably be made into one style
+StyleSheet.prototype.add = function(blocks) {
+  validateBlocks(blocks);
 
   var styles = [],
     selector,
@@ -166,17 +102,15 @@ StyleSheet.prototype.addStyles = function(blocks) {
     styles.push(style);
   }
 
+  this.compileIfAutoCompile();
+
   return styles;
 };
 
 // this assume declarations are in plain css format
+// should be made private as a helper
 StyleSheet.prototype.addStyle = function(selector, declarations) {
-  var style = this.getStyle(selector);
-
-  // might need to pre-process declarations
-
-  // should add logic to allow passing in of already created style object
-  // if(selector instanceof CSJS.Style) style = selector;
+  var style = this.get(selector);
 
   if(style) {
 
@@ -189,53 +123,35 @@ StyleSheet.prototype.addStyle = function(selector, declarations) {
     this.styles[selector] = style;
   }
 
+  // private helper should not compile
+  // this.compileIfAutoCompile();
+
   return style;
 };
 
-StyleSheet.prototype.updateStyle = function(selector, declarations) {
-  var style = this.getStyle(selector);
+StyleSheet.prototype.update = function(selector, declarations) {
+  var style = this.get(selector);
 
   if(style) {
+    this.compileIfAutoCompile();
     return style.update(declarations);
   } else {
     throw new Error('Cannot update undefined style');
   }
 };
 
-StyleSheet.prototype.removeStyle = function(selector) {
-  var style = this.getStyle(selector);
-  if(style) delete this.styles[selector];
-  return style;
+StyleSheet.prototype.remove = function(selector) {
+  return delete this.styles[selector];
 };
 
-function createStyleElement(id) {
-  var name = 'style',
-    style;
-
-  // if in the browser, do create actual element and append
-  if(isBrowser()) {
-    style = document.createElement(name);
-    style.setAttribute('id', id);
-    document.getElementsByTagName('head')[0].appendChild(style);
-
-  // otherwise, create plain object to hold data
-  } else {
-
-    // mimic element properties
-    style = {
-      tagName: name.toUpperCase(),
-      id: id
-    };
-  }
-
-  style.type = 'text/css';
-
-  return style;
-}
+StyleSheet.prototype.destroy = function() {
+  // should also remove element from dom
+  this.element.innerHTML = '';
+  return removeStyleSheet(this);
+};
 
 StyleSheet.prototype.toCSS = function() {
-  var minify = CSJS.minify,
-    delimiter = minify ? '' : '\n',
+  var delimiter = CSJS.minify ? '' : '\n',
     styles = this.styles,
     css = [],
     selector,
@@ -243,35 +159,47 @@ StyleSheet.prototype.toCSS = function() {
 
   for(selector in styles) {
     style = styles[selector];
-
-    // use style css property
-    // this is much faster than re-compiling each style
-    // but assume that style css is kept up to date
     css.push(style.css);
   }
 
   return css.join(delimiter);
 };
 
-StyleSheet.prototype.compile = function() {
-  var css = this.toCSS();
-  this.element.innerHTML = css;
+StyleSheet.prototype.compileIfAutoCompile = function() {
+  if(CSJS.autoCompile) this.compile();
   return this;
 };
 
-// StyleSheet.
+StyleSheet.prototype.compile = function() {
+  this.element.innerHTML = this.toCSS();
+  return this;
+};
 
-function isBrowser() {
-  // return false; // dev use
-  return typeof document === 'object';
+function createStyleElement() {
+  var name = 'STYLE',
+    style;
+
+  // if in the browser, create element and append
+  if(isBrowser()) {
+    style = document.createElement(name);
+    document.getElementsByTagName('head')[0].appendChild(style);
+
+  // otherwise, create plain object to hold data
+  } else {
+    style = {tagName: name};
+  }
+
+  style.type = 'text/css';
+
+  return style;
 }
 
-function validSelector(selector) {
-  return typeof selector === 'string';
+function validateBlocks(blocks) {
+  if(blocks && typeof blocks !== 'object') raise('Invalid style blocks.');
 }
 
-function validBlocks(blocks) {
-  return typeof blocks === 'object';
+function validateSelector(selector) {
+  if(typeof selector !== 'string') raise('Invalid selector.');
 }
 
 
@@ -286,26 +214,13 @@ function validBlocks(blocks) {
 // use styleSheet.addStyle to create new styles
 CSJS.Style = Style;
 function Style(selector, declarations) {
-  if(!validSelector(selector)) throw new Error('Invalid selector.');
+  validateSelector(selector);
 
   this.selector = selector || null;
   this.declarations = declarations || {};
 
-  // setting css property greatly speeds up compilation time
-  // but need to be careful to update css property on any update to style
   this.compile();
 }
-
-// styles are always auto-compiled after any update
-// this greatly improves style-sheet compilation time
-Style.prototype.compile = function() {
-  this.css = this.toCSS();
-  return this;
-};
-
-Style.prototype.toCSS = function() {
-  return Compiler.compileBlock(this.selector, this.declarations);
-};
 
 Style.prototype.get = function(property) {
   var declarations = this.declarations,
@@ -326,8 +241,9 @@ Style.prototype.get = function(property) {
   return value;
 };
 
+// set and update should be combined into one function
 Style.prototype.set = function(property, value) {
-  if(!validProperty(property)) throw new Error('Invalid property.');
+  validateProperty(property);
 
   if(!this.canUpdate()) {
     throw new Error('Cannot update style with functional declarations.');
@@ -346,7 +262,7 @@ Style.prototype.set = function(property, value) {
 // or invoke function and make declarations static from then on
 // for now, just throw an error
 Style.prototype.update = function(declarations) {
-  if(!validDeclarations(declarations)) throw new Error('Invalid declarations.');
+  validateDeclarations(declarations);
 
   if(!this.canUpdate()) {
     throw new Error('Cannot update style with functional declarations.');
@@ -364,33 +280,46 @@ Style.prototype.update = function(declarations) {
 };
 
 Style.prototype.remove = function(property) {
-  if(property && !validProperty(property)) throw new Error('Invalid property.');
-
   if(!property) {
-
-    // clear all declarations if no property is specified
     this.declarations = {};
   } else {
+    validateProperty(property);
     delete this.declarations[property];
   }
 
   return this.compile();
 };
 
+Style.prototype.destroy = function() {
+  // implement - would need to notify parent style-sheet
+};
+
+// styles are always auto-compiled after any update
+// this greatly improves style-sheet compilation time
+// but need to be careful to update css property on any update to style
+Style.prototype.compile = function() {
+  this.css = this.toCSS();
+  return this;
+};
+
+Style.prototype.toCSS = function() {
+  return Compiler.compileBlock(this.selector, this.declarations);
+};
+
 // check if the style can be updated
 // styles with functional declarations cannot be updated
 Style.prototype.canUpdate = function() {
-  return this.declarations !== 'function';
+  return typeof this.declarations !== 'function';
 };
 
-function validDeclarations(declarations) {
-  return typeof declarations === 'object';
+function validateProperty(property) {
+  if(property && typeof property !== 'string') raise('Invalid property.');
 }
 
-function validProperty(property) {
-  return typeof property === 'string';
-}
 
+function validateDeclarations(declarations) {
+  if(typeof declarations !== 'object') raise('Invalid declarations');
+}
 
 /**
  * Constructs a compiler engine
@@ -403,10 +332,9 @@ function Compiler() {}
 // however, it will only work if styles are written in standard css (not-nested) format
 Compiler.compile =  compile;
 function compile(blocks, skipPreProcess) {
-  if(typeof blocks !== 'object') throw new Error('Must supply object to compile.');
+  validateBlocks(blocks);
 
-  var minify = CSJS.minify,
-    delimiter = minify ? '' : '\n',
+  var delimiter = CSJS.minify ? '' : '\n',
     css = [],
     selector,
     block,
@@ -424,7 +352,6 @@ function compile(blocks, skipPreProcess) {
     }
 
     cssBlock = Compiler.compileBlock(selector, block);
-
     css.push(cssBlock);
   }
 
@@ -442,19 +369,18 @@ function preProcess(blocks) {
 
 Compiler.compileBlock = compileBlock;
 function compileBlock(selector, block) {
-  var minify = CSJS.minify,
-    newLine = minify ? '' : '\n',
-    space = minify ? '' : ' ',
+  var newLine = CSJS.minify ? '' : '\n',
+    space = CSJS.minify ? '' : ' ',
     css = [],
     property,
     value;
 
-  // css = selector + space + '{' + newLine,
+  // hard-coded to regex out parent selectors
+  // should be part of an earlier compilation process
+  // this adds a consistent 15ms in the 50 sets / 100 block test.
+  selector = selector.replace(/\s&/g, '');
 
-  css.push(selector);
-  css.push(space);
-  css.push('{');
-  css.push(newLine);
+  css.push(selector, space, '{', newLine);
 
   if(typeof block === 'function') {
     block = block(selector);
@@ -467,16 +393,7 @@ function compileBlock(selector, block) {
       value = value(property);
     }
 
-    // css += space + space + property + ':' + space + value + ';' + newLine;
-
-    css.push(space);
-    css.push(space);
-    css.push(property);
-    css.push(':');
-    css.push(space);
-    css.push(value);
-    css.push(';');
-    css.push(newLine);
+    css.push(space, space, property, ':', space, value, ';', newLine);
   }
 
   css.push('}');
@@ -487,8 +404,9 @@ function compileBlock(selector, block) {
 CSJS.Util = Util;
 function Util() {}
 
-// delimter for various util functions
-Util.delimiter = ' ';
+// delimiter for various utility functions
+// should not be modified
+Util._delimiter = ' ';
 
 
 /*
@@ -510,9 +428,10 @@ function flatten(object) {
     if(typeof value === 'object' && value !== null) {
 
       nextLevel = flatten(value);
-      prefix = property + Util.delimiter;
 
-      Util.merge(flattened, nextLevel, prefix);
+      property = property + Util._delimiter;
+
+      Util.merge(flattened, nextLevel, property);
 
     } else {
       flattened[property] = value;
@@ -569,9 +488,9 @@ function unflatten(object) {
   for(property in object) {
     value = object[property];
 
-    propertySegments = property.split(Util.delimiter);
+    propertySegments = property.split(Util._delimiter);
     nextProperty = propertySegments.pop();
-    remaining = propertySegments.join(Util.delimiter);
+    remaining = propertySegments.join(Util._delimiter);
 
     if(remaining.length) {
       unflattened[remaining] = unflattened[remaining] || {};

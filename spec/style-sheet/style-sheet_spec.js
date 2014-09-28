@@ -6,7 +6,7 @@ describe('StyleSheet', function() {
   beforeEach(function() {
 
     // reset style-sheet cache before each test
-    CSJS.clearStyleSheets();
+    CSJS.styleSheets = [];
   });
 
   describe('instantiation', function() {
@@ -21,52 +21,16 @@ describe('StyleSheet', function() {
       expect(styleSheet instanceof StyleSheet).toBe(true);
     });
 
-    it('should create a StyleSheet with a default id if none is supplied', function() {
-      var styleSheet = new StyleSheet();
-      expect(styleSheet.id).toBe('style-sheet');
-    });
-
-    it('should create a new StyleSheet with an id', function() {
-      var styleSheet = new StyleSheet('main');
-      expect(styleSheet.id).toBe('main');
-    });
-
-    it('should not throw an error if a a StyleSheet is already created with an id', function() {
-      var styleSheet = new StyleSheet('main');
-
-      expect(function newStyleSheet() {
-        return new StyleSheet('main');
-      }).not.toThrow();
-    });
-
-    it('should auto-increment id if a StyleSheet is already created with an id', function() {
-      var styleSheet1 = new StyleSheet('main'),
-        styleSheet2 = new StyleSheet('main');
-
-      expect(styleSheet2.id).toBe('main-2');
-    });
-
-    it('should throw an error if uniqueId is true and a StyleSheet is already created with an id', function() {
-      var styleSheet = new StyleSheet('main');
-
-      CSJS.uniqueId = true;
-
-      expect(function newStyleSheet() {
-        return new StyleSheet('main');
-      }).toThrow();
-    });
-
     it('should create a new StyleSheet with a style property', function() {
-      var styleSheet = new StyleSheet('main');
-      expect(styleSheet.styles).toBeDefined();
+      var styleSheet = new StyleSheet();
+      expect(styleSheet.styles).toEqual({});
     });
 
     it('should set an element property', function() {
-      var styleSheet = new StyleSheet('main');
+      var styleSheet = new StyleSheet();
 
       var expectedElement = {
         tagName: 'STYLE',
-        id: 'main',
         type: 'text/css',
         innerHTML: ''
       };
@@ -85,45 +49,45 @@ describe('StyleSheet', function() {
     });
   });
 
-  describe('getStyle', function() {
+  describe('get', function() {
     it('should throw an error if passed an invalid selector', function() {
       var styleSheet = new StyleSheet();
-      expect(styleSheet.getStyle).toThrow();
+      expect(styleSheet.get).toThrow();
     });
 
     it('should return undefined if no style exists', function() {
       var styleSheet = new StyleSheet(),
-        style = styleSheet.getStyle('not-defined');
+        style = styleSheet.get('not-defined');
 
       expect(style).toBeUndefined();
     });
 
     it('should return a style if one exists', function() {
       var styleSheet = new StyleSheet({p: {color: 'red'}}),
-        style = styleSheet.getStyle('p');
+        style = styleSheet.get('p');
 
       expect(style instanceof CSJS.Style).toBe(true);
     });
   });
 
-  describe('addStyles', function() {
+  describe('add', function() {
     it('should throw an error if passed invalid style blocks', function() {
       var styleSheet = new StyleSheet(),
-        addStyles = styleSheet.addStyles.bind(styleSheet, 123);
+        added = styleSheet.add.bind(styleSheet, 123);
 
-      expect(addStyles).toThrow();
+      expect(added).toThrow();
     });
 
     it('should return an empty array if not passed any style blocks', function() {
       var styleSheet = new StyleSheet(),
-        styles = styleSheet.addStyles();
+        styles = styleSheet.add();
 
       expect(styles).toEqual([]);
     });
 
     it('should return all declared styles if passed valid style blocks', function() {
       var styleSheet = new StyleSheet(),
-        styles = styleSheet.addStyles({
+        styles = styleSheet.add({
             p: {color: 'green'},
             div: {border: '1px solid black'}
           });
@@ -133,7 +97,7 @@ describe('StyleSheet', function() {
 
     it('should return a style object for each valid style if nested styles are present', function() {
       var styleSheet = new StyleSheet(),
-        styles = styleSheet.addStyles({
+        styles = styleSheet.add({
             p: {color: 'green'},
             div: {
               border: '1px solid black',
@@ -146,7 +110,7 @@ describe('StyleSheet', function() {
 
     it('should add the styles to the style-sheet', function() {
       var styleSheet = new StyleSheet(),
-        styles = styleSheet.addStyles({
+        styles = styleSheet.add({
             p: {color: 'green'},
             div: {
               border: '1px solid black',

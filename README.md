@@ -66,9 +66,9 @@ h1 {
 * Programmatically add styles
 
 ```js
-var styleSheet = CSJS.getStyleSheet('main');
+var styleSheet = new CSJS.StyleSheet();
 
-styleSheet.addStyle('p', {color: 'purple'});
+styleSheet.add('p', {color: 'purple'});
 // => [object Style]
 ```
 
@@ -77,7 +77,7 @@ The current style-sheet will now include the defined style `p {color: purple;}`.
 * Edit previous styles
 
 ```js
-styleSheet.updateStyle('p', {color: 'green'});
+styleSheet.update('p', {color: 'green'});
 // => [object Style]
 ```
 
@@ -86,7 +86,7 @@ Now the original style is updated `p {color: green;}`.
 * Interact with style objects
 
 ```js
-var style = styleSheet.getStyle('p');
+var style = styleSheet.get('p');
 
 style.toCSS();
 // "p {
@@ -102,8 +102,9 @@ style.toCSS();
 //   background-color: yellow;
 // }"
 
-style.getValue('color');
+style.get('color');
 // => 'green'
+```
 
 * Auto-compilation
 
@@ -111,7 +112,7 @@ The above examples work by leveraging auto compilation. However, if this is unde
 
 ```js
 // define auto-compilation for all style-sheets
-// the below will stop style-sheets from auto-comiling
+// the below will stop style-sheets from auto-compiling
 CSJS.autoCompile = false;
 ```
 
@@ -124,7 +125,7 @@ All style compilation is done by the `CSJS.Compiler`. This engine is used to con
 Run profiles
 
 ```
-$ node profile/
+$ node profiles/
 ```
 
 Compilations were profiled using 5000 default blocks, each with 5 unique styles and 4 levels.

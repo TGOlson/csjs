@@ -125,7 +125,7 @@ function styleSheetRecompile(blocks, iterations, blockCount) {
  * Test settings
  */
 
-CSJS.minify = true;
+// CSJS.minify = true;
 
 var testCycles = [
   // {
@@ -140,10 +140,10 @@ var testCycles = [
     iterations: 50,
     blockCount: 100
   },
-  {
-    iterations: 1,
-    blockCount: 1000
-  }
+  // {
+  //   iterations: 1,
+  //   blockCount: 1000
+  // }
 ];
 
 var functions = [

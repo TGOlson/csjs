@@ -1,7 +1,7 @@
 var Compiler = require('../../csjs').Compiler,
   compile = Compiler.compile;
 
-describe('Compiler.compile', function() {
+ddescribe('Compiler.compile', function() {
   it('should convert a simple compatible javascript object to css', function() {
     var object = {
       p: {color: 'red'}
@@ -279,6 +279,22 @@ describe('Compiler.compile', function() {
               '}\n' +
               'div p {\n' +
               '  color: red;\n' +
+              '}';
+
+    expect(compile(object)).toBe(css);
+  });
+
+
+  it('should convert nested selectors with a parent flag to css', function() {
+    var object = {
+      ul: {
+        // padding: 'none',
+        '&.item': {'list-style': 'none'}
+      }
+    };
+
+    var css = 'ul.item {\n' +
+              '  list-style: none;\n' +
               '}';
 
     expect(compile(object)).toBe(css);

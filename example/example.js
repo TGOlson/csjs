@@ -3,7 +3,7 @@ var padding = '10px',
 
 // CSJS.minify = true;
 
-var styleSheet = new CSJS.StyleSheet('main', {
+var styleSheet = new CSJS.StyleSheet({
   p: {
     padding: padding,
     color: 'green',

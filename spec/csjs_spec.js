@@ -5,7 +5,7 @@ describe('CSJS', function() {
   beforeEach(function() {
 
     // reset style-sheet cache before each test
-    CSJS.clearStyleSheets();
+    CSJS.styleSheets = [];
   });
 
   it('should have a style-sheet module', function() {
@@ -30,115 +30,6 @@ describe('CSJS', function() {
 
   it('should have a default minify setting', function() {
     expect(CSJS.minify).toBe(false);
-  });
-
-  it('should have a default id setting', function() {
-    expect(CSJS.defaultId).toBe('style-sheet');
-  });
-
-  describe('getStyleSheet', function() {
-    it('should throw an error if passed an invalid id', function() {
-      expect(CSJS.getStyleSheet).toThrow();
-    });
-
-    it('should return undefined if no style-sheet exists with specified id', function() {
-      var styleSheet = CSJS.getStyleSheet('not-here');
-      expect(styleSheet).toBeUndefined();
-    });
-
-    it('should return a style-sheet if one exists with specified id', function() {
-      var id = 'fake-style-sheet',
-        styleSheet = {id: id};
-
-      CSJS._styleSheets[id] = styleSheet;
-
-      expect(CSJS.getStyleSheet(id)).toBe(styleSheet);
-    });
-  });
-
-  describe('removeStyleSheet', function() {
-    it('should throw an error if not provided with a style-sheet', function() {
-      expect(CSJS.removeStyleSheet).toThrow();
-    });
-
-    it('should remove a style-sheet from the cache', function() {
-      var id = 'fake-style-sheet';
-
-      CSJS._styleSheets[id] = {id: id};
-
-      CSJS.removeStyleSheet(id);
-
-      expect(CSJS._styleSheets[id]).toBeUndefined();
-    });
-
-    it('should return the removed style-sheet', function() {
-      var id = 'fake-style-sheet',
-        styleSheet = {id: id},
-        removed;
-
-      CSJS._styleSheets[id] = styleSheet;
-      removed = CSJS.removeStyleSheet(id);
-
-      expect(removed).toBe(styleSheet);
-    });
-  });
-
-  describe('isStyleSheet', function() {
-    it('should return false if object is not a style-sheet', function() {
-      var isStyleSheet = CSJS.isStyleSheet(123);
-      expect(isStyleSheet).toBe(false);
-    });
-
-    it('should return false if object is undefined', function() {
-      var isStyleSheet = CSJS.isStyleSheet();
-      expect(isStyleSheet).toBe(false);
-    });
-
-    it('should return true if object is a style-sheet', function() {
-      var styleSheet = new CSJS.StyleSheet();
-        isStyleSheet = CSJS.isStyleSheet(styleSheet);
-
-      expect(isStyleSheet).toBe(true);
-    });
-  });
-
-  describe('clearStyleSheets', function() {
-    it('should clear all style-sheets from cache', function() {
-      CSJS._styleSheets = {
-        fake1: 1,
-        fake2: 2,
-        fake3: 3
-      };
-
-      CSJS.clearStyleSheets();
-
-      expect(CSJS._styleSheets).toEqual({});
-    });
-  });
-
-  describe('nextId', function() {
-    it('should return the original id if it has not yet been used', function() {
-      var id = CSJS.nextId('main');
-      expect(id).toBe('main');
-    });
-
-    it('should return the id with a `-2` if it has been used once previously', function() {
-      CSJS._styleSheets.main = {};
-
-      var id = CSJS.nextId('main');
-      expect(id).toBe('main-2');
-    });
-
-    it('should auto increment the id until it finds a unique id', function() {
-      CSJS._styleSheets = {
-        main: {},
-        'main-2': {},
-        'main-3': {}
-      };
-
-      var id = CSJS.nextId('main');
-      expect(id).toBe('main-4');
-    });
   });
 
   describe('compile', function() {
