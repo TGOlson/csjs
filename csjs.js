@@ -156,7 +156,12 @@ StyleSheet.prototype.toCSS = function() {
 
   for(selector in styles) {
     style = styles[selector];
-    css.push(style.css);
+
+    // try to use static css property if available
+    // this is the fastest option and avoids recompiling
+    // if not available, compile style
+    // this will generally happen if a style has functional declarations
+    css.push(style.css || style.toCSS());
   }
 
   return css.join(delimiter);
@@ -295,7 +300,13 @@ Style.prototype.destroy = function() {
 // this greatly improves style-sheet compilation time
 // but need to be careful to update css property on any update to style
 Style.prototype.compile = function() {
-  this.css = this.toCSS();
+
+  // do not set css property if style has functional declarations
+  // this will force the style to be reevaluated at each compile time
+  if(typeof this.declarations !== 'function') {
+    this.css = this.toCSS();
+  }
+
   return this;
 };
 

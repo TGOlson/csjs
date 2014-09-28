@@ -1,7 +1,7 @@
 var Compiler = require('../../csjs').Compiler,
   compile = Compiler.compile;
 
-ddescribe('Compiler.compile', function() {
+describe('Compiler.compile', function() {
   it('should convert a simple compatible javascript object to css', function() {
     var object = {
       p: {color: 'red'}
