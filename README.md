@@ -157,6 +157,8 @@ Character count:
 491,670 minified
 636,669 un-minified
 
+(Bootstrap in a little over 100,000 characters minified)
+
 **(these character counts mirror what one might expect from *very* large scale production apps)**
 
 Compiling all 5,000 style blocks at once:

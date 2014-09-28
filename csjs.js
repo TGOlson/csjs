@@ -130,14 +130,12 @@ function StyleSheet(id, blocks) {
     id = CSJS.defaultId;
   }
 
-
   this.id = id;
 
   addStyleSheet(this);
 
   this.styles = {};
   this.element = createStyleElement(this.id);
-
 
   this.addStyles(blocks);
 
@@ -171,8 +169,11 @@ StyleSheet.prototype.addStyles = function(blocks) {
   return styles;
 };
 
+// this assume declarations are in plain css format
 StyleSheet.prototype.addStyle = function(selector, declarations) {
   var style = this.getStyle(selector);
+
+  // might need to pre-process declarations
 
   // should add logic to allow passing in of already created style object
   // if(selector instanceof CSJS.Style) style = selector;
@@ -203,9 +204,7 @@ StyleSheet.prototype.updateStyle = function(selector, declarations) {
 
 StyleSheet.prototype.removeStyle = function(selector) {
   var style = this.getStyle(selector);
-
   if(style) delete this.styles[selector];
-
   return style;
 };
 
@@ -213,14 +212,20 @@ function createStyleElement(id) {
   var name = 'style',
     style;
 
-  if(hasDocument()) {
+  // if in the browser, do create actual element and append
+  if(isBrowser()) {
     style = document.createElement(name);
     style.setAttribute('id', id);
+    document.getElementsByTagName('head')[0].appendChild(style);
 
-    // should add element here
+  // otherwise, create plain object to hold data
   } else {
-    style = {name: name};
-    style.id = id;
+
+    // mimic element properties
+    style = {
+      tagName: name.toUpperCase(),
+      id: id
+    };
   }
 
   style.type = 'text/css';
@@ -249,23 +254,14 @@ StyleSheet.prototype.toCSS = function() {
 };
 
 StyleSheet.prototype.compile = function() {
-  var style = this.element,
-    css = this.toCSS();
-
-  style.innerHTML = css;
-
-  if(hasDocument()) {
-
-    // this should be done in create element
-    document.getElementsByTagName('head')[0].appendChild(style);
-  }
-
+  var css = this.toCSS();
+  this.element.innerHTML = css;
   return this;
 };
 
 // StyleSheet.
 
-function hasDocument() {
+function isBrowser() {
   // return false; // dev use
   return typeof document === 'object';
 }

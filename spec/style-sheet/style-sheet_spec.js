@@ -62,9 +62,16 @@ describe('StyleSheet', function() {
     });
 
     it('should set an element property', function() {
-      var styleSheet = new StyleSheet();
+      var styleSheet = new StyleSheet('main');
 
-      expect(styleSheet.element.name).toBe('style');
+      var expectedElement = {
+        tagName: 'STYLE',
+        id: 'main',
+        type: 'text/css',
+        innerHTML: ''
+      };
+
+      expect(styleSheet.element).toEqual(expectedElement);
     });
 
     it('should set styles if a block is passed in', function() {
