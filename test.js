@@ -1,4 +1,10 @@
-var CSJS = require('./csjs');
+
+// allow script to work in browser or node
+// CSJS should already be loaded if used in browser
+if(typeof exports === 'object') {
+  var CSJS = require('./csjs');
+}
+
 
 // toggle minification
 CSJS.minify = true;
@@ -29,7 +35,7 @@ var defaultBlock = {
  * Test helpers
  */
 
-var iterations = 1;
+var iterations = 10;
 
 function timer(func) {
   var start = new Date(),
@@ -72,11 +78,24 @@ function makeBlocks() {
 function testLiveCompilation() {
   var blocks = makeBlocks();
 
-  console.log('Live compiling', blockCount, 'styles.');
+  console.log('Live compiling', iterations, 'sets of', blockCount, 'style blocks.');
 
   timer(function() {
     var css = CSJS.compile(blocks);
-    console.log('Chars compiled:', css.length);
+    // console.log('Chars compiled:', css.length);
+  });
+}
+
+// raw compilation without pre-processing
+// this can only be done if styles are defined without nested syntax
+function testLiveCompilationNp() {
+  var blocks = makeBlocks();
+
+  console.log('Live compiling without pre-processing', iterations, 'sets of', blockCount, 'style blocks.');
+
+  timer(function() {
+    var css = CSJS.compile(blocks, true);
+    // console.log('Chars compiled:', css.length);
   });
 }
 
@@ -85,7 +104,7 @@ function testLiveCompilation() {
 function testStyleSheetInit() {
   var blocks = makeBlocks();
 
-  console.log('Initializing StyleSheet with', blockCount, 'styles.');
+  console.log('Initializing', iterations, 'style-sheets with', blockCount, 'style blocks each.');
 
   timer(function() {
     new CSJS.StyleSheet(blocks);
@@ -99,7 +118,7 @@ function testStyleSheetRecompile() {
   var blocks = makeBlocks(),
     styleSheet = new CSJS.StyleSheet(blocks);
 
-  console.log('Re-compiling StyleSheet with', blockCount, 'styles.');
+  console.log('Re-compiling', iterations, 'style-sheets with', blockCount, 'style blocks each.');
 
   timer(function() {
     styleSheet.compile();
@@ -116,10 +135,13 @@ testLiveCompilation();
 // minification doesn't seem to make difference
 // when split into 50 style-sheets of 100 blocks ~ 100ms to compile
 
+testLiveCompilationNp();
+// 19ms to compile
+// without pre-processing
+
 
 testStyleSheetInit();
 // 450ms to init/compile
-
 
 testStyleSheetRecompile();
 // 160ms to recompile

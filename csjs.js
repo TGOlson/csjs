@@ -28,11 +28,16 @@ CSJS.autoCompile = true;
 // minify style-sheets during compilation
 CSJS.minify = false;
 
+// enforce unique style-sheet ids
+// auto increment duplicate ids otherwise
+CSJS.uniqueId = false;
+
 // id to use when one is not supplied
 CSJS.defaultId = 'style-sheet';
 
 // private list of style-sheets
 CSJS._styleSheets = {};
+
 
 CSJS.getStyleSheet = getStyleSheet;
 function getStyleSheet(id) {
@@ -48,13 +53,36 @@ function addStyleSheet(styleSheet) {
   }
 
   var id = styleSheet.id,
-    styleSheets = CSJS._styleSheets;
+    styleSheets = CSJS._styleSheets,
+    idExists = !!CSJS.getStyleSheet(id);
 
-  // if(CSJS.getStyleSheet(id)) throw new Error('StyleSheet \'' + id + '\' already initialized.');
+  if(idExists) {
+    if(CSJS.uniqueId) {
+      throw new Error('StyleSheet \'' + id + '\' already initialized.');
+    } else {
+      id = CSJS.nextId(id);
+      styleSheet.id = id;
+    }
+  }
 
   styleSheets[id] = styleSheet;
 
   return styleSheet;
+}
+
+CSJS.nextId = nextId;
+function nextId(id) {
+  var next = id,
+    styleSheet = CSJS.getStyleSheet(next),
+    i;
+
+  // should this be a while loop?
+  for(i = 2; styleSheet; i++) {
+    next = id + '-' + i;
+    styleSheet = CSJS.getStyleSheet(next);
+  }
+
+  return next;
 }
 
 CSJS.removeStyleSheet = removeStyleSheet;
@@ -102,11 +130,14 @@ function StyleSheet(id, blocks) {
     id = CSJS.defaultId;
   }
 
+
   this.id = id;
-  this.styles = {};
-  this.element = createStyleElement(id);
 
   addStyleSheet(this);
+
+  this.styles = {};
+  this.element = createStyleElement(this.id);
+
 
   this.addStyles(blocks);
 
@@ -185,6 +216,8 @@ function createStyleElement(id) {
   if(hasDocument()) {
     style = document.createElement(name);
     style.setAttribute('id', id);
+
+    // should add element here
   } else {
     style = {name: name};
     style.id = id;
@@ -205,7 +238,11 @@ StyleSheet.prototype.toCSS = function() {
 
   for(selector in styles) {
     style = styles[selector];
-    css.push(style.toCSS());
+
+    // use style css property
+    // this is much faster than re-compiling each style
+    // but assume that style css is kept up to date
+    css.push(style.css);
   }
 
   return css.join(delimiter);
@@ -218,11 +255,15 @@ StyleSheet.prototype.compile = function() {
   style.innerHTML = css;
 
   if(hasDocument()) {
+
+    // this should be done in create element
     document.getElementsByTagName('head')[0].appendChild(style);
   }
 
-  return css;
+  return this;
 };
+
+// StyleSheet.
 
 function hasDocument() {
   // return false; // dev use
@@ -243,13 +284,28 @@ function validBlocks(blocks) {
  * @param {string} selector - style selector
  * @param {object} declarationBlock - style declaration block
  */
+
+// new style objects should not be directly instantiated
+// this will leave them without any parent style-sheet
+// use styleSheet.addStyle to create new styles
 CSJS.Style = Style;
 function Style(selector, declarations) {
   if(!validSelector(selector)) throw new Error('Invalid selector.');
 
   this.selector = selector || null;
   this.declarations = declarations || {};
+
+  // setting css property greatly speeds up compilation time
+  // but need to be careful to update css property on any update to style
+  this.compile();
 }
+
+// styles are always auto-compiled after any update
+// this greatly improves style-sheet compilation time
+Style.prototype.compile = function() {
+  this.css = this.toCSS();
+  return this;
+};
 
 Style.prototype.toCSS = function() {
   return Compiler.compileBlock(this.selector, this.declarations);
@@ -259,12 +315,14 @@ Style.prototype.get = function(property) {
   var declarations = this.declarations,
     value;
 
+  // invoke any functional declarations
   if(typeof declarations === 'function') {
     declarations = declarations(this.selector);
   }
 
   value = declarations[property];
 
+  // invoke any functional values
   if(typeof value === 'function') {
     value = value(this.selector);
   }
@@ -272,24 +330,61 @@ Style.prototype.get = function(property) {
   return value;
 };
 
+Style.prototype.set = function(property, value) {
+  if(!validProperty(property)) throw new Error('Invalid property.');
+
+  if(!this.canUpdate()) {
+    throw new Error('Cannot update style with functional declarations.');
+  }
+
+  this.declarations[property] = value;
+  return this.compile();
+};
+
+// TODO: Look into bugs with updating functional declarations
+// styles may be lost if a new declaration is added
+// to a style with preexisting functional declarations
+// or if a functional declaration is updated with a functional value
+// basically - updating functional references
+// should either set or overwrite all old declarations
+// or invoke function and make declarations static from then on
+// for now, just throw an error
 Style.prototype.update = function(declarations) {
   if(!validDeclarations(declarations)) throw new Error('Invalid declarations.');
+
+  if(!this.canUpdate()) {
+    throw new Error('Cannot update style with functional declarations.');
+  }
 
   var property,
     value;
 
   for(property in declarations) {
     value = declarations[property];
-    this.declarations[property] = value;
+    this.set(property, value);
   }
 
-  return this;
+  return this.compile();
 };
 
 Style.prototype.remove = function(property) {
-  if(!validProperty(property)) throw new Error('Invalid property.');
-  delete this.declarations[property];
-  return this;
+  if(property && !validProperty(property)) throw new Error('Invalid property.');
+
+  if(!property) {
+
+    // clear all declarations if no property is specified
+    this.declarations = {};
+  } else {
+    delete this.declarations[property];
+  }
+
+  return this.compile();
+};
+
+// check if the style can be updated
+// styles with functional declarations cannot be updated
+Style.prototype.canUpdate = function() {
+  return this.declarations !== 'function';
 };
 
 function validDeclarations(declarations) {
@@ -308,8 +403,10 @@ CSJS.Compiler = Compiler;
 function Compiler() {}
 
 // compiles a javascript object in compatible format to native css
+// skipping pre-processing can make compilation much faster
+// however, it will only work if styles are written in standard css (not-nested) format
 Compiler.compile =  compile;
-function compile(blocks) {
+function compile(blocks, skipPreProcess) {
   if(typeof blocks !== 'object') throw new Error('Must supply object to compile.');
 
   var minify = CSJS.minify,
@@ -319,7 +416,7 @@ function compile(blocks) {
     block,
     cssBlock;
 
-  blocks = preProcess(blocks);
+  if(!skipPreProcess) blocks = preProcess(blocks);
 
   for(selector in blocks) {
     block = blocks[selector];

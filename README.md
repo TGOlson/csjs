@@ -223,3 +223,4 @@ $ jasmine-node spec/
 * Look into an evented interface
 * Create some helper functions for creating styles
 * Look into bugs with adding declarations to style with preexisting functional declarations.
+* Refactor compiler so no pre-processing is necessary (much faster)

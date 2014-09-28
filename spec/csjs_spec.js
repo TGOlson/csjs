@@ -116,6 +116,31 @@ describe('CSJS', function() {
     });
   });
 
+  describe('nextId', function() {
+    it('should return the original id if it has not yet been used', function() {
+      var id = CSJS.nextId('main');
+      expect(id).toBe('main');
+    });
+
+    it('should return the id with a `-2` if it has been used once previously', function() {
+      CSJS._styleSheets.main = {};
+
+      var id = CSJS.nextId('main');
+      expect(id).toBe('main-2');
+    });
+
+    it('should auto increment the id until it finds a unique id', function() {
+      CSJS._styleSheets = {
+        main: {},
+        'main-2': {},
+        'main-3': {}
+      };
+
+      var id = CSJS.nextId('main');
+      expect(id).toBe('main-4');
+    });
+  });
+
   describe('compile', function() {
     it('should be the compiler compilation method', function() {
       expect(CSJS.compile).toBe(CSJS.Compiler.compile);

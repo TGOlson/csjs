@@ -1,7 +1,7 @@
 var CSJS = require('../../csjs'),
   StyleSheet = CSJS.StyleSheet;
 
-ddescribe('StyleSheet', function() {
+describe('StyleSheet', function() {
 
   beforeEach(function() {
 
@@ -10,6 +10,12 @@ ddescribe('StyleSheet', function() {
   });
 
   describe('instantiation', function() {
+    afterEach(function() {
+
+      // reset any changed defaults after each test
+      CSJS.uniqueId = false;
+    });
+
     it('should create a new StyleSheet instance', function() {
       var styleSheet = new StyleSheet();
       expect(styleSheet instanceof StyleSheet).toBe(true);
@@ -25,11 +31,28 @@ ddescribe('StyleSheet', function() {
       expect(styleSheet.id).toBe('main');
     });
 
-    it('should throw an error if a StyleSheet is already created with an id', function() {
-      var styleSheet = new StyleSheet();
+    it('should not throw an error if a a StyleSheet is already created with an id', function() {
+      var styleSheet = new StyleSheet('main');
 
       expect(function newStyleSheet() {
-        return new StyleSheet();
+        return new StyleSheet('main');
+      }).not.toThrow();
+    });
+
+    it('should auto-increment id if a StyleSheet is already created with an id', function() {
+      var styleSheet1 = new StyleSheet('main'),
+        styleSheet2 = new StyleSheet('main');
+
+      expect(styleSheet2.id).toBe('main-2');
+    });
+
+    it('should throw an error if uniqueId is true and a StyleSheet is already created with an id', function() {
+      var styleSheet = new StyleSheet('main');
+
+      CSJS.uniqueId = true;
+
+      expect(function newStyleSheet() {
+        return new StyleSheet('main');
       }).toThrow();
     });
 
