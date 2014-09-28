@@ -93,7 +93,7 @@ style.toCSS();
 //   color: green;
 // }"
 
-style.update({'background-color:' 'yellow'});
+style.update({'background-color': 'yellow'});
 // => [object Style]
 
 style.toCSS();
@@ -128,7 +128,7 @@ Run profiles
 $ node profiles/
 ```
 
-Compilations were profiled using 5000 default blocks, each with 5 unique styles and 4 levels.
+Compilations were profiled using 5000 default blocks, each with 5 defined styles at 3 levels of nesting.
 
 ```js
 // default test block
@@ -138,16 +138,14 @@ Compilations were profiled using 5000 default blocks, each with 5 unique styles 
   div: {color: 'red'},
   ul: {
     li: {
-      span: {
-        border: '1px solid #aaa',
-        color: 'blue'
-      }
+      border: '1px solid #aaa',
+      color: 'green'
     }
   }
 };
 ```
 
-Character count:
+Character count @ 5000 blocks:
 
 491,670 minified
 636,669 un-minified
@@ -159,13 +157,13 @@ Character count:
 Compiling all 5,000 style blocks at once:
 ```
 Live compiling 1 set of 5000 style blocks.
-Duration: 288ms
+Duration: 278ms
 
 Initializing 1 style-sheet with 5000 style blocks each.
-Duration: 448ms
+Duration: 453ms
 
 Recompiling 1 style-sheet with 5000 style blocks each.
-Duration: 149ms
+Duration: 155ms
 ```
 
 Note, at this block size, compilation speeds start to drag. A smarter technique would be to split the styles into smaller style sheets.
@@ -173,10 +171,10 @@ Note, at this block size, compilation speeds start to drag. A smarter technique 
 Compiling 10 sets of 500 style blocks:
 ```
 Live compiling 10 sets of 500 style blocks.
-Duration: 144ms
+Duration: 120ms
 
 Initializing 10 style-sheets with 500 style blocks each.
-Duration: 160ms
+Duration: 149ms
 
 Recompiling 10 style-sheets with 500 style blocks each.
 Duration: 18ms
@@ -187,10 +185,10 @@ And even better - 50 style-sheets of 100 style blocks each (close to how traditi
 Compiling 50 sets of 100 style blocks:
 ```
 Live compiling 50 sets of 100 style blocks.
-Duration: 117ms
+Duration: 101ms
 
 Initializing 50 style-sheets with 100 style blocks each.
-Duration: 133ms
+Duration: 128ms
 
 Recompiling 50 style-sheets with 100 style blocks each.
 Duration: 7ms
@@ -198,7 +196,7 @@ Duration: 7ms
 
 Note how recompiling becomes almost instant once style blocks are spread between multiple style-sheets. Using this technique, a huge production app could initialize all their style-sheets on page load in just over 100ms, and recompile every style sheet with updates in well under 10ms.
 
-Another benefit of creating multiple style-sheets is that generally only one style-sheet will need to be recompiled at any given time. Recompiling a single style-sheet of 100 style blocks takes less than 1ms. (in this test, 100 style blocks define 500 unique CSS styles - roughly 9,270 characters minified)
+Another benefit of creating multiple style-sheets is that generally only one style-sheet will need to be recompiled at any given time. Recompiling a single style-sheet of 100 style blocks takes well under 1ms (normally below .5ms including DOM element update). (in this test, a style-sheet of 100 style blocks defines 500 unique CSS styles - roughly 9,270 characters minified)
 
 ### Specs
 

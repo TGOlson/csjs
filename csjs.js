@@ -73,9 +73,6 @@ function StyleSheet(blocks) {
   this.element = createStyleElement();
 
   this.add(blocks);
-
-  // should check to see if auto-compile is true
-  this.compileIfAutoCompile();
 }
 
 StyleSheet.prototype.get = function(selector) {

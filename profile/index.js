@@ -10,17 +10,15 @@ if(typeof exports === 'object') {
  */
 
 // default test block
-// includes 4 levels of nesting and 5 unique styles
+// includes 3 levels of nesting and 5 defined styles
 var defaultBlock = {
   color: 'blue',
   padding: '5px',
   div: {color: 'red'},
   ul: {
     li: {
-      span: {
-        border: '1px solid #aaa',
-        color: 'blue'
-      }
+      border: '1px solid #aaa',
+      color: 'green'
     }
   }
 };
@@ -136,14 +134,14 @@ var testCycles = [
   //   iterations: 10,
   //   blockCount: 500
   // },
-  {
-    iterations: 50,
-    blockCount: 100
-  },
   // {
-  //   iterations: 1,
-  //   blockCount: 1000
-  // }
+  //   iterations: 50,
+  //   blockCount: 100
+  // },
+  {
+    iterations: 1,
+    blockCount: 100
+  }
 ];
 
 var functions = [
